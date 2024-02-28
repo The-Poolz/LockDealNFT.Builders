@@ -1,0 +1,28 @@
+{
+    "name": "@poolzfinance/builders",
+    "version": "0.8.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "The Poolz",
+    "license": "MIT",
+    "devDependencies": {
+        "@nomicfoundation/hardhat-network-helpers": "^1.0.6",
+        "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+        "@nomiclabs/hardhat-ethers": "^2.2.1",
+        "@truffle/dashboard-hardhat-plugin": "^0.2.15",
+        "hardhat": "^2.20.0",
+        "solidity-coverage": "^0.8.7"
+    },
+    "dependencies": {
+        "@ironblocks/firewall-consumer": "^1.0.5",
+        "@openzeppelin/contracts": "^4.8.3",
+        "@poolzfinance/poolz-helper-v2": "^2.3.5",
+        "@poolzfinance/lockdeal-nft": "^0.8.0",
+        "@poolzfinance/refund-provider": "^0.8.0",
+        "@poolzfinance/collateral-provider": "^0.8.1"
+    }
+}
