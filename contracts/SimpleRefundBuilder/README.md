@@ -67,4 +67,4 @@ After creating mass refund pools, `msg.sender` assumes the role of the **Project
 
 ## License
 
-[The-Poolz](https://poolz.finance/) Contracts is released under the [MIT License](https://github.com/The-Poolz/DelayVaultProvider/blob/master/LICENSE).
+[The-Poolz](https://poolz.finance/) Contracts is released under the [MIT License](https://github.com/The-Poolz/LockDealNFT.Builders/blob/master/LICENSE).
