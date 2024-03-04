@@ -1,18 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
-import "@poolzfinance/poolz-helper-v2/contracts/interfaces/ISimpleProvider.sol";
-import "../Builder/BuilderInternal.sol";
-import "@poolzfinance/poolz-helper-v2/contracts/CalcUtils.sol";
-import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
+import "./RefundBuilderInternal.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "hardhat/console.sol";
 
 /// @title SimpleRefundBuilder contract
 /// @notice Implements a contract for building refund simple providers
-contract SimpleRefundBuilder is ERC721Holder, BuilderInternal, FirewallConsumer {
+contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
     using CalcUtils for uint256;
-    IProvider public refundProvider;
-    IProvider public collateralProvider;
 
     constructor(ILockDealNFT _nft, IProvider _refund, IProvider _collateral) {
         lockDealNFT = _nft;
@@ -20,19 +16,44 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal, FirewallConsumer 
         collateralProvider = _collateral;
     }
 
-    struct ParamsData {
-        ISimpleProvider provider;
-        address token;
-        address mainCoin;
-        uint256 mainCoinAmount;
-    }
+    /// @notice ERC721 receiver function
+    /// @dev This function is called when an NFT is transferred to this contract
+    /// @param operator - the address that called the `safeTransferFrom` function
+    /// @param user - the address that owns the NFT
+    /// @param poolId - the ID of the Collateral NFT
+    /// @param data - additional data with the NFT
+    function onERC721Received(address operator, address user, uint256 poolId, bytes calldata data) external virtual override firewallProtected returns (bytes4) {
+        require(msg.sender == address(lockDealNFT), "SimpleRefundBuilder: Only LockDealNFT contract allowed");
+        require(lockDealNFT.poolIdToProvider(poolId) == collateralProvider, "SimpleRefundBuilder: Invalid collateral provider");
+        require(data.length > 0, "SimpleRefundBuilder: Invalid data length");
 
-    struct MassPoolsLocals {
-        ParamsData paramsData;
-        uint256[] simpleParams;
-        uint256 totalAmount;
-        uint256 poolId;
-        uint256[] refundParams;
+        (
+            uint256[] memory params,
+            bytes memory tokenSignature,
+            bytes memory mainCoinSignature,
+            Builder memory userData
+        ) = abi.decode(data, (uint256[], bytes, bytes, Builder));
+        require(userData.userPools.length > 0, "SimpleRefundBuilder: invalid user length");
+        require(params.length < 3, "SimpleRefundBuilder: Invalid SimpleProvider params length");
+
+        uint256 refundPoolId = poolId - 2; // The first Refund poolId always 2 less than collateral poolId
+        address token = lockDealNFT.tokenOf(refundPoolId);
+        address mainCoin = lockDealNFT.tokenOf(poolId);
+        ISimpleProvider provider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(poolId - 1)));
+
+        params = _concatParams(userData.userPools[0].amount, params);
+
+        // one time token transfer for deacrease number transactions
+        lockDealNFT.mintForProvider(userData.userPools[0].user, refundProvider);
+        uint256 firstPoolId = lockDealNFT.safeMintAndTransfer(address(refundProvider), token, operator, userData.totalAmount, provider, tokenSignature);
+        provider.registerPool(firstPoolId, params);
+
+        // create mass refund pools        
+        //_userDataIterator(provider, userPools, totalAmount, poolId, simpleParams, refundParams);
+
+        // transfer back the NFT to the user
+        lockDealNFT.transferFrom(address(this), user, poolId);
+        return this.onERC721Received.selector;
     }
 
     /// @param addressParams[0] = simpleProvider
@@ -50,9 +71,9 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal, FirewallConsumer 
     ) external firewallProtected {
         MassPoolsLocals memory locals;
         locals.paramsData = _validateParamsData(addressParams, params);
-        require(userData.userPools.length > 0, "invalid user length");
+        require(userData.userPools.length > 0, "SimpleRefundBuilder: invalid user length");
         locals.totalAmount = userData.totalAmount;
-        require(locals.totalAmount > 0, "invalid totalAmount");
+        require(locals.totalAmount > 0, "SimpleRefundBuilder: invalid totalAmount");
         locals.simpleParams = _concatParams(userData.userPools[0].amount, params[1]);
         locals.poolId = _createFirstNFT(
             locals.paramsData.provider,
@@ -71,112 +92,5 @@ contract SimpleRefundBuilder is ERC721Holder, BuilderInternal, FirewallConsumer 
             mainCoinSignature
         );
         _userDataIterator(locals.paramsData.provider, userData.userPools, locals.totalAmount, locals.poolId, locals.simpleParams, locals.refundParams);
-    }
-
-    function _createFirstNFT(
-        ISimpleProvider provider,
-        address token,
-        address owner,
-        uint256 totalAmount,
-        uint256[] memory params,
-        bytes calldata signature
-    ) internal virtual override firewallProtectedSig(0x29454335) returns (uint256 poolId) {
-        // one time token transfer for deacrease number transactions
-        lockDealNFT.mintForProvider(owner, refundProvider);
-        poolId = super._createFirstNFT(provider, token, address(refundProvider), totalAmount, params, signature);
-    }
-
-    function _createCollateralProvider(
-        address mainCoin,
-        uint256 tokenPoolId,
-        uint256 totalAmount,
-        uint256 mainCoinAmount,
-        uint256 collateralFinishTime,
-        bytes calldata signature
-    ) internal firewallProtectedSig(0x4516d406) returns (uint256 poolId) {
-        poolId = lockDealNFT.safeMintAndTransfer(
-            msg.sender,
-            mainCoin,
-            msg.sender,
-            mainCoinAmount,
-            collateralProvider,
-            signature
-        );
-        uint256[] memory collateralParams = new uint256[](3);
-        collateralParams[0] = totalAmount;
-        collateralParams[1] = mainCoinAmount;
-        collateralParams[2] = collateralFinishTime;
-        collateralProvider.registerPool(poolId, collateralParams);
-        lockDealNFT.cloneVaultId(poolId + 2, tokenPoolId);
-    }
-
-    function _validateParamsData(
-        address[] calldata addressParams,
-        uint256[][] calldata params
-    ) internal view returns (ParamsData memory paramsData) {
-        require(addressParams.length == 3, "invalid addressParams length");
-        require(params.length == 2, "invalid params length");
-        require(
-            ERC165Checker.supportsInterface(addressParams[0], type(ISimpleProvider).interfaceId),
-            "invalid provider type"
-        );
-        require(addressParams[0] != address(0), "invalid provider address");
-        require(addressParams[1] != address(0), "invalid token address");
-        require(addressParams[2] != address(0), "invalid mainCoin address");
-        paramsData.token = addressParams[1];
-        paramsData.provider = ISimpleProvider(addressParams[0]);
-        paramsData.mainCoin = addressParams[2];
-        paramsData.mainCoinAmount = params[0][0];
-    }
-
-    function _finalizeFirstNFT(
-        uint256 tokenPoolId,
-        address mainCoin,
-        uint256 totalAmount,
-        uint256 mainCoinAmount,
-        uint256 collateralFinishTime,
-        bytes calldata signature
-    ) internal firewallProtectedSig(0xcfc2dc78) returns (uint256[] memory refundParams) {
-        refundParams = new uint256[](1);
-        refundParams[0] = _createCollateralProvider(
-            mainCoin,
-            tokenPoolId,
-            totalAmount,
-            mainCoinAmount,
-            collateralFinishTime,
-            signature
-        );
-        refundProvider.registerPool(tokenPoolId - 1, refundParams);
-    }
-
-    function _userDataIterator(
-        ISimpleProvider provider,
-        UserPool[] calldata userData,
-        uint256 totalAmount,
-        uint256 tokenPoolId,
-        uint256[] memory simpleParams,
-        uint256[] memory refundParams
-    ) internal firewallProtectedSig(0xbbc1f709) {
-        uint256 length = userData.length;
-        require(length > 0, "invalid userPools length");
-        totalAmount -= userData[0].amount;
-        // create refund pools for users
-        for (uint256 i = 1; i < length; ) {
-            uint256 userAmount = userData[i].amount;
-            address user = userData[i].user;
-            uint256 refundPoolId = lockDealNFT.mintForProvider(user, refundProvider);
-            totalAmount -= _createNewNFT(
-                provider,
-                tokenPoolId,
-                UserPool(address(refundProvider), userAmount),
-                simpleParams
-            );
-            refundProvider.registerPool(refundPoolId, refundParams);
-            unchecked {
-                ++i;
-            }
-        }
-        // check that all tokens are distributed correctly
-        assert(totalAmount == 0);
     }
 }
