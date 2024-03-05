@@ -29,17 +29,15 @@ describe("onERC721Received Collateral tests", function () {
     let user2: SignerWithAddress
     let user3: SignerWithAddress
     let startTime: BigNumber, finishTime: BigNumber
-    let mainCoinAmount = ethers.utils.parseEther("10")
+    const mainCoinAmount = ethers.utils.parseEther("10")
     const amount = ethers.utils.parseEther("100").toString()
     const ONE_DAY = 86400
     const gasLimit = 130_000_000
-    const rate = ethers.utils.parseUnits("0.1", 21)
-    let packedData: any
+    let packedData: string
     const tokenSignature: Bytes = ethers.utils.toUtf8Bytes("signature")
     const mainCoinsignature: Bytes = ethers.utils.toUtf8Bytes("signature")
     const token = "0xCcf41440a137299CB6af95114cb043Ce4e28679A"
     const BUSD = "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56"
-    const MAX_RATIO = ethers.utils.parseUnits("1", 21) // 100%
     let refundProvider: RefundProvider
     let collateralProvider: CollateralProvider
     let vaultId: number
