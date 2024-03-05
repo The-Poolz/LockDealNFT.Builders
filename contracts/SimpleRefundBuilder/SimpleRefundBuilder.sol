@@ -35,42 +35,50 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
     /// @param data - additional data with the NFT
     function onERC721Received(address operator, address user, uint256 poolId, bytes calldata data) external virtual override firewallProtected returns (bytes4) {
         require(msg.sender == address(lockDealNFT), "SimpleRefundBuilder: Only LockDealNFT contract allowed");
-        require(lockDealNFT.poolIdToProvider(poolId) == collateralProvider, "SimpleRefundBuilder: Invalid collateral provider");
-        require(data.length > 0, "SimpleRefundBuilder: Invalid data length");
-        Rebuilder memory locals;
-        (
-            locals.params,
-            locals.tokenSignature,
-            locals.mainCoinSignature,
-            locals.userData
-        ) = abi.decode(data, (uint256[], bytes, bytes, Builder));
-        require(locals.userData.userPools.length > 0, "SimpleRefundBuilder: invalid user length");
-        require(locals.params.length < 3, "SimpleRefundBuilder: Invalid SimpleProvider params length");
+        if (operator != address(this)) {
+            require(lockDealNFT.poolIdToProvider(poolId) == collateralProvider, "SimpleRefundBuilder: Invalid collateral provider");
+            require(data.length > 0, "SimpleRefundBuilder: Invalid data length");
+            Rebuilder memory locals;
+            (
+                locals.params,
+                locals.tokenSignature,
+                locals.mainCoinSignature,
+                locals.userData
+            ) = abi.decode(data, (uint256[], bytes, bytes, Builder));
+            require(locals.userData.userPools.length > 0, "SimpleRefundBuilder: invalid user length");
+            require(locals.params.length < 3, "SimpleRefundBuilder: Invalid SimpleProvider params length");
 
-        locals.refundPoolId = poolId - 2; // The first Refund poolId always 2 less than collateral poolId
-        locals.token = lockDealNFT.tokenOf(locals.refundPoolId);
-        locals.mainCoin = lockDealNFT.tokenOf(poolId);
-        locals.provider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(poolId - 1)));
+            locals.refundPoolId = poolId - 2; // The first Refund poolId always 2 less than collateral poolId
+            locals.token = lockDealNFT.tokenOf(locals.refundPoolId);
+            locals.mainCoin = lockDealNFT.tokenOf(poolId);
+            locals.provider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(poolId - 1)));
 
-        locals.params = _concatParams(locals.userData.userPools[0].amount, locals.params);
+            locals.params = _concatParams(locals.userData.userPools[0].amount, locals.params);
 
-        // one time token transfer for deacrease number transactions
-        lockDealNFT.mintForProvider(locals.userData.userPools[0].user, refundProvider);
-        uint256 firstPoolId = lockDealNFT.safeMintAndTransfer(
-            address(refundProvider),
-            locals.token,
-            operator,
-            locals.userData.totalAmount,
-            locals.provider,
-            locals.tokenSignature
-        );
-        locals.provider.registerPool(firstPoolId, locals.params);
-
-        // create mass refund pools
-        //_userDataIterator(provider, userPools, totalAmount, poolId, simpleParams, refundParams);
-
-        // transfer back the NFT to the user
-        lockDealNFT.transferFrom(address(this), user, poolId);
+            // one time token transfer for deacrease number transactions
+            uint256 firstPoolId = _createFirstNFT(
+                locals.provider,
+                locals.token,
+                locals.userData.userPools[0].user,
+                locals.userData.totalAmount,
+                locals.params,
+                locals.tokenSignature
+            );
+            // create nft for main coin
+            lockDealNFT.safeMintAndTransfer(
+                address(this),
+                locals.mainCoin,
+                address(msg.sender),
+                locals.userData.totalAmount,
+                collateralProvider,
+                locals.mainCoinSignature
+            );
+            // create mass refund pools
+            //_userDataIterator(provider, userPools, totalAmount, poolId, simpleParams, refundParams);
+            
+            // transfer back the NFT to the user
+            lockDealNFT.transferFrom(address(this), user, poolId);
+        }
         return this.onERC721Received.selector;
     }
 

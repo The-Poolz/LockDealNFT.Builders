@@ -34,7 +34,7 @@ contract RefundBuilderInternal is BuilderInternal, FirewallConsumer {
         address owner,
         uint256 totalAmount,
         uint256[] memory params,
-        bytes calldata signature
+        bytes memory signature
     ) internal virtual override firewallProtectedSig(0x29454335) returns (uint256 poolId) {
         // one time token transfer for deacrease number transactions
         lockDealNFT.mintForProvider(owner, refundProvider);
