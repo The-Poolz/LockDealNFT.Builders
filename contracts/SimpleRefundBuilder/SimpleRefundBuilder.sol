@@ -76,7 +76,8 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             uint256 subPoolId = poolId + 3;
             IProvider dealProvider = lockDealNFT.poolIdToProvider(subPoolId);
             uint256[] memory subParams = dealProvider.getParams(subPoolId);
-            subParams[0] += locals.userData.totalAmount;
+            uint256 rate = collateralProvider.getParams(poolId)[2];
+            subParams[0] += locals.userData.totalAmount.calcRate(rate);
             dealProvider.registerPool(subPoolId, subParams);
 
             // create mass refund pools
