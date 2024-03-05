@@ -52,7 +52,6 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             locals.token = lockDealNFT.tokenOf(locals.refundPoolId);
             locals.mainCoin = lockDealNFT.tokenOf(poolId);
             locals.provider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(poolId - 1)));
-
             locals.params = _concatParams(locals.userData.userPools[0].amount, locals.params);
 
             // one time token transfer for deacrease number transactions
@@ -73,6 +72,13 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
                 collateralProvider,
                 locals.mainCoinSignature
             );
+            // update sub collateral pool (mainCoinHolder pool)
+            uint256 subPoolId = poolId + 3;
+            IProvider dealProvider = lockDealNFT.poolIdToProvider(subPoolId);
+            uint256[] memory subParams = dealProvider.getParams(subPoolId);
+            subParams[0] += locals.userData.totalAmount;
+            dealProvider.registerPool(subPoolId, subParams);
+
             // create mass refund pools
             //_userDataIterator(provider, userPools, totalAmount, poolId, simpleParams, refundParams);
             
