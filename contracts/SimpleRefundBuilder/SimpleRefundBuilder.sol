@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "./RefundBuilderInternal.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "hardhat/console.sol";
 
 /// @title SimpleRefundBuilder contract
 /// @notice Implements a contract for building refund simple providers
@@ -25,6 +24,7 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
         uint256 refundPoolId;
         address token;
         address mainCoin;
+        uint256 mainCoinAmount;
     }
 
     /// @notice ERC721 receiver function
@@ -53,6 +53,7 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             locals.mainCoin = lockDealNFT.tokenOf(poolId);
             locals.provider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(poolId - 1)));
             locals.params = _concatParams(locals.userData.userPools[0].amount, locals.params);
+            locals.mainCoinAmount = locals.userData.totalAmount.calcRate(collateralProvider.getParams(poolId)[2]);
 
             // one time token transfer for deacrease number transactions
             uint256 firstPoolId = _createFirstNFT(
@@ -68,7 +69,7 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
                 address(this),
                 locals.mainCoin,
                 address(msg.sender),
-                locals.userData.totalAmount,
+                locals.mainCoinAmount,
                 collateralProvider,
                 locals.mainCoinSignature
             );
@@ -76,8 +77,7 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             uint256 subPoolId = poolId + 3;
             IProvider dealProvider = lockDealNFT.poolIdToProvider(subPoolId);
             uint256[] memory subParams = dealProvider.getParams(subPoolId);
-            uint256 rate = collateralProvider.getParams(poolId)[2];
-            subParams[0] += locals.userData.totalAmount.calcRate(rate);
+            subParams[0] += locals.mainCoinAmount;
             dealProvider.registerPool(subPoolId, subParams);
 
             // create mass refund pools
