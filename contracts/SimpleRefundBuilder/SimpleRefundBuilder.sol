@@ -18,6 +18,7 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
     struct Rebuilder {
         ISimpleProvider provider;
         uint256[] params;
+        uint256[] refundParams;
         bytes tokenSignature;
         bytes mainCoinSignature;
         Builder userData;
@@ -64,7 +65,11 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
                 locals.params,
                 locals.tokenSignature
             );
-            // create nft for main coin
+            locals.refundParams = new uint256[](1);
+            locals.refundParams[0] = poolId;
+            refundProvider.registerPool(firstPoolId - 1, locals.refundParams);
+
+            // create nft for main coin transfer
             lockDealNFT.safeMintAndTransfer(
                 address(this),
                 locals.mainCoin,
