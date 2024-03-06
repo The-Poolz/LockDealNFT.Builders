@@ -15,19 +15,6 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
         collateralProvider = _collateral;
     }
 
-    struct Rebuilder {
-        ISimpleProvider provider;
-        uint256[] simpleParams;
-        uint256[] refundParams;
-        bytes tokenSignature;
-        bytes mainCoinSignature;
-        Builder userData;
-        uint256 refundPoolId;
-        address token;
-        address mainCoin;
-        uint256 mainCoinAmount;
-    }
-
     /// @notice ERC721 receiver function
     /// @dev This function is called when an NFT is transferred to this contract
     /// @param operator - the address that called the `safeTransferFrom` function
@@ -66,7 +53,7 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
                 locals.tokenSignature
             );
             locals.refundParams = _registerRefundProvider(firstPoolId - 1, poolId);
-            // update the collateral data and create another nft for the mainСoin amount
+            // update the collateral data and create another nft to transfer the mainСoin amount
             _updateCollateralData(locals.mainCoin, locals.mainCoinAmount, poolId + 3, locals.mainCoinSignature);
             // create mass refund pools
             _userDataIterator(

@@ -1,4 +1,4 @@
-import { MockVaultManager } from "../typechain-types/"
+import { MockVaultManager } from "../typechain-types"
 import { DealProvider } from "../typechain-types"
 import { LockDealNFT } from "../typechain-types"
 import { LockDealProvider } from "../typechain-types"

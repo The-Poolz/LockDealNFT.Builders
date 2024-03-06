@@ -1,32 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@poolzfinance/poolz-helper-v2/contracts/interfaces/ISimpleProvider.sol";
-import "../Builder/BuilderInternal.sol";
+import "./RefundBuilderState.sol";
 import "@poolzfinance/poolz-helper-v2/contracts/CalcUtils.sol";
 import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 
 /// @title RefundBuilderInternal contract
 /// @notice contain internal logic for Simple Refund Builder
-contract RefundBuilderInternal is BuilderInternal, FirewallConsumer {
+contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
     using CalcUtils for uint256;
-    IProvider public refundProvider;
-    IProvider public collateralProvider;
-
-    struct ParamsData {
-        ISimpleProvider provider;
-        address token;
-        address mainCoin;
-        uint256 mainCoinAmount;
-    }
-
-    struct MassPoolsLocals {
-        ParamsData paramsData;
-        uint256[] simpleParams;
-        uint256 totalAmount;
-        uint256 poolId;
-        uint256[] refundParams;
-    }
 
     function _createFirstNFT(
         ISimpleProvider provider,
