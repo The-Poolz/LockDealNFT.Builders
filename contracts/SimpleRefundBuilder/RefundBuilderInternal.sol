@@ -84,6 +84,40 @@ contract RefundBuilderInternal is BuilderInternal, FirewallConsumer {
         paramsData.mainCoinAmount = params[0][0];
     }
 
+    function _getRebuildData(uint256 collateraPoolId, uint256 tokenAmount)
+        internal
+        view
+        returns (
+            uint256 refundPoolId,
+            address token,
+            address mainCoin,
+            ISimpleProvider provider,
+            uint256 mainCoinAmount
+        )
+    {
+        refundPoolId = collateraPoolId - 2; // there are no cases where collateraPoolId is less than 2
+        token = lockDealNFT.tokenOf(refundPoolId);
+        mainCoin = lockDealNFT.tokenOf(collateraPoolId);
+        provider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(collateraPoolId - 1)));
+        mainCoinAmount = tokenAmount.calcRate(collateralProvider.getParams(collateraPoolId)[2]);
+    }
+
+    function _updateCollateralData(address mainCoin, uint256 mainCoinAmount, uint256 subPoolId, bytes memory mainCoinSignature) internal {
+        lockDealNFT.safeMintAndTransfer(
+            address(this),
+            mainCoin,
+            address(msg.sender),
+            mainCoinAmount,
+            collateralProvider,
+            mainCoinSignature
+        );
+        // update sub collateral pool (mainCoinHolder pool)
+        IProvider dealProvider = lockDealNFT.poolIdToProvider(subPoolId);
+        uint256[] memory subParams = dealProvider.getParams(subPoolId);
+        subParams[0] += mainCoinAmount;
+        dealProvider.registerPool(subPoolId, subParams);
+    }
+
     function _finalizeFirstNFT(
         uint256 tokenPoolId,
         address mainCoin,
