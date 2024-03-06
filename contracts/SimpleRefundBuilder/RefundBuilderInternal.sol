@@ -106,7 +106,7 @@ contract RefundBuilderInternal is BuilderInternal, FirewallConsumer {
 
     function _userDataIterator(
         ISimpleProvider provider,
-        UserPool[] calldata userData,
+        UserPool[] memory userData,
         uint256 totalAmount,
         uint256 tokenPoolId,
         uint256[] memory simpleParams,

@@ -17,7 +17,7 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
 
     struct Rebuilder {
         ISimpleProvider provider;
-        uint256[] params;
+        uint256[] simpleParams;
         uint256[] refundParams;
         bytes tokenSignature;
         bytes mainCoinSignature;
@@ -41,19 +41,19 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             require(data.length > 0, "SimpleRefundBuilder: Invalid data length");
             Rebuilder memory locals;
             (
-                locals.params,
+                locals.simpleParams,
                 locals.tokenSignature,
                 locals.mainCoinSignature,
                 locals.userData
             ) = abi.decode(data, (uint256[], bytes, bytes, Builder));
             require(locals.userData.userPools.length > 0, "SimpleRefundBuilder: invalid user length");
-            require(locals.params.length < 3, "SimpleRefundBuilder: Invalid SimpleProvider params length");
+            require(locals.simpleParams.length < 3, "SimpleRefundBuilder: Invalid SimpleProvider params length");
 
             locals.refundPoolId = poolId - 2; // The first Refund poolId always 2 less than collateral poolId
             locals.token = lockDealNFT.tokenOf(locals.refundPoolId);
             locals.mainCoin = lockDealNFT.tokenOf(poolId);
             locals.provider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(poolId - 1)));
-            locals.params = _concatParams(locals.userData.userPools[0].amount, locals.params);
+            locals.simpleParams = _concatParams(locals.userData.userPools[0].amount, locals.simpleParams);
             locals.mainCoinAmount = locals.userData.totalAmount.calcRate(collateralProvider.getParams(poolId)[2]);
 
             // one time token transfer for deacrease number transactions
@@ -62,7 +62,7 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
                 locals.token,
                 locals.userData.userPools[0].user,
                 locals.userData.totalAmount,
-                locals.params,
+                locals.simpleParams,
                 locals.tokenSignature
             );
             locals.refundParams = new uint256[](1);
@@ -86,7 +86,14 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             dealProvider.registerPool(subPoolId, subParams);
 
             // create mass refund pools
-            //_userDataIterator(provider, userPools, totalAmount, poolId, simpleParams, refundParams);
+            _userDataIterator(
+                locals.provider,
+                locals.userData.userPools,
+                locals.userData.totalAmount,
+                firstPoolId,
+                locals.simpleParams,
+                locals.refundParams
+            );
             
             // transfer back the NFT to the user
             lockDealNFT.transferFrom(address(this), user, poolId);

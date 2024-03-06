@@ -76,10 +76,8 @@ describe("onERC721Received Collateral tests", function () {
         finishTime = startTime.add(7 * ONE_DAY) // plus 7 days from `startTime`
         const userCount = "10"
         const userPools = _createUsers(amount, userCount)
-        const userAddresses = [user1.address, user2.address, user3.address]; // Example addresses
-        const amounts = [100, 200, 300]; // Example amounts
         const totalAmount = 600; // Example total amount
-        const builderType = ["uint256[]","bytes","bytes","tuple(address[],uint256[])","uint256"];
+        const builderType = ["uint256[]","bytes","bytes","tuple((address,uint256)[],uint256)"];
         const params = _createProviderParams(dealProvider.address)
         packedData = ethers.utils.defaultAbiCoder.encode(
             builderType,
@@ -87,8 +85,7 @@ describe("onERC721Received Collateral tests", function () {
                 [],
                 tokenSignature,
                 mainCoinsignature,
-                [userAddresses, amounts],
-                totalAmount
+                [[[user1.address, 100], [user2.address, 200], [user3.address, 300]], totalAmount]
             ]
         )
         collateralPoolId = (await lockDealNFT.totalSupply()).toNumber() + 2
