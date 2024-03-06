@@ -65,9 +65,7 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
                 locals.simpleParams,
                 locals.tokenSignature
             );
-            locals.refundParams = new uint256[](1);
-            locals.refundParams[0] = poolId;
-            refundProvider.registerPool(firstPoolId - 1, locals.refundParams);
+            locals.refundParams = _registerRefundProvider(firstPoolId - 1, poolId);
 
             // create nft for main coin transfer
             lockDealNFT.safeMintAndTransfer(
@@ -84,7 +82,6 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             uint256[] memory subParams = dealProvider.getParams(subPoolId);
             subParams[0] += locals.mainCoinAmount;
             dealProvider.registerPool(subPoolId, subParams);
-
             // create mass refund pools
             _userDataIterator(
                 locals.provider,

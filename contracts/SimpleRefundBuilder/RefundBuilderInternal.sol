@@ -92,16 +92,23 @@ contract RefundBuilderInternal is BuilderInternal, FirewallConsumer {
         uint256 collateralFinishTime,
         bytes calldata signature
     ) internal firewallProtectedSig(0xcfc2dc78) returns (uint256[] memory refundParams) {
-        refundParams = new uint256[](1);
-        refundParams[0] = _createCollateralProvider(
-            mainCoin,
-            tokenPoolId,
-            totalAmount,
-            mainCoinAmount,
-            collateralFinishTime,
-            signature
+        refundParams = _registerRefundProvider(
+        tokenPoolId - 1,
+        _createCollateralProvider(
+                mainCoin,
+                tokenPoolId,
+                totalAmount,
+                mainCoinAmount,
+                collateralFinishTime,
+                signature
+            )
         );
-        refundProvider.registerPool(tokenPoolId - 1, refundParams);
+    }
+
+    function _registerRefundProvider(uint256 refundPoolId, uint256 collateralPoolId) internal returns (uint256[] memory refundParams){
+        refundParams = new uint256[](1);
+        refundParams[0] = collateralPoolId;
+        refundProvider.registerPool(refundPoolId, refundParams);
     }
 
     function _userDataIterator(
