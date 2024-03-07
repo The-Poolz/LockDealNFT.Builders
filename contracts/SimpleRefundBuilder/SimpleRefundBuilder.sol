@@ -35,18 +35,12 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             ) = abi.decode(data, (uint256[], bytes, bytes, Builder));
             require(locals.userData.userPools.length > 0, "SimpleRefundBuilder: invalid user length");
             require(locals.simpleParams.length < 3, "SimpleRefundBuilder: Invalid SimpleProvider params length");
-            (
-                locals.refundPoolId,
-                locals.token,
-                locals.mainCoin,
-                locals.provider,
-                locals.mainCoinAmount
-            ) = _getRebuildData(poolId, locals.userData.totalAmount);
+            (locals.refundPoolId, locals.paramsData) = _getRebuildData(poolId, locals.userData.totalAmount);
             locals.simpleParams = _concatParams(locals.userData.userPools[0].amount, locals.simpleParams);
             // one time token transfer for deacrease number transactions
             uint256 firstPoolId = _createFirstNFT(
-                locals.provider,
-                locals.token,
+                locals.paramsData.provider,
+                locals.paramsData.token,
                 locals.userData.userPools[0].user,
                 locals.userData.totalAmount,
                 locals.simpleParams,
@@ -54,10 +48,10 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             );
             locals.refundParams = _registerRefundProvider(firstPoolId - 1, poolId);
             // update the collateral data and create another nft to transfer the mainСoin amount
-            _updateCollateralData(locals.mainCoin, locals.mainCoinAmount, poolId + 3, locals.mainCoinSignature);
+            _updateCollateralData(locals.paramsData.mainCoin, locals.paramsData.mainCoinAmount, poolId + 3, locals.mainCoinSignature);
             // create mass refund pools
             _userDataIterator(
-                locals.provider,
+                locals.paramsData.provider,
                 locals.userData.userPools,
                 locals.userData.totalAmount,
                 firstPoolId,

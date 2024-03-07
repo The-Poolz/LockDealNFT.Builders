@@ -26,15 +26,12 @@ contract RefundBuilderState is BuilderInternal {
     }
 
     struct Rebuilder {
-        ISimpleProvider provider;
+        ParamsData paramsData;
         uint256[] simpleParams;
         uint256[] refundParams;
         bytes tokenSignature;
         bytes mainCoinSignature;
         Builder userData;
         uint256 refundPoolId;
-        address token;
-        address mainCoin;
-        uint256 mainCoinAmount;
     }
 }

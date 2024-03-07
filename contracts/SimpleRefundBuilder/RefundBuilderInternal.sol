@@ -69,19 +69,13 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
     function _getRebuildData(uint256 collateraPoolId, uint256 tokenAmount)
         internal
         view
-        returns (
-            uint256 refundPoolId,
-            address token,
-            address mainCoin,
-            ISimpleProvider provider,
-            uint256 mainCoinAmount
-        )
+        returns (uint256 refundPoolId, ParamsData memory paramsData)
     {
         refundPoolId = collateraPoolId - 2; // there are no cases where collateraPoolId is less than 2
-        token = lockDealNFT.tokenOf(refundPoolId);
-        mainCoin = lockDealNFT.tokenOf(collateraPoolId);
-        provider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(collateraPoolId - 1)));
-        mainCoinAmount = tokenAmount.calcRate(collateralProvider.getParams(collateraPoolId)[2]);
+        paramsData.token = lockDealNFT.tokenOf(refundPoolId);
+        paramsData.mainCoin = lockDealNFT.tokenOf(collateraPoolId);
+        paramsData.provider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(collateraPoolId - 1)));
+        paramsData.mainCoinAmount = tokenAmount.calcRate(collateralProvider.getParams(collateraPoolId)[2]);
     }
 
     function _updateCollateralData(address mainCoin, uint256 mainCoinAmount, uint256 subPoolId, bytes memory mainCoinSignature) internal {
