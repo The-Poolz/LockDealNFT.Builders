@@ -46,11 +46,15 @@ npx hardhat coverage
 **Deploy:**
 
 ```console
-truffle dashboard
+npx truffle dashboard
 ```
 
 ```console
-npx hardhat run ./scripts/deploy.ts --network truffleDashboard
+npx hardhat run ./scripts/deploySimpleBuilder.ts --network truffleDashboard
+```
+
+```console
+npx hardhat run ./scripts/deploySimpleRefundBuilder.ts --network truffleDashboard
 ```
 
 ## License
