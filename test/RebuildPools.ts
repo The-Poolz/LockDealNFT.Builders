@@ -22,15 +22,17 @@ describe("onERC721Received Collateral tests", function () {
     let timedProvider: TimedDealProvider
     let simpleRefundBuilder: SimpleRefundBuilder
     let lockDealNFT: LockDealNFT
-    let userData: BuilderState.BuilderStruct
     let addressParams: [string, string, string]
     let projectOwner: SignerWithAddress
     let user1: SignerWithAddress
     let user2: SignerWithAddress
     let user3: SignerWithAddress
     let startTime: BigNumber, finishTime: BigNumber
+    let rebuildData: (string | number)[][];
+    let totalAmount: BigNumber
+    const divideRate = ethers.utils.parseUnits("1", 21)
     const mainCoinAmount = ethers.utils.parseEther("10")
-    const amount = ethers.utils.parseEther("100").toString()
+    const amount = ethers.utils.parseEther("100")
     const ONE_DAY = 86400
     const gasLimit = 130_000_000
     let packedData: string
@@ -67,6 +69,8 @@ describe("onERC721Received Collateral tests", function () {
             lockDealNFT.setApprovedContract(lockDealNFT.address, true),
             lockDealNFT.setApprovedContract(simpleRefundBuilder.address, true),
         ])
+        rebuildData = [[user1.address, amount.toString()], [user2.address, amount.mul(2).toString()], [user3.address, amount.mul(3).toString()]];
+        totalAmount = amount.mul(6)
     })
 
     beforeEach(async () => {
@@ -75,8 +79,7 @@ describe("onERC721Received Collateral tests", function () {
         startTime = ethers.BigNumber.from((await time.latest()) + ONE_DAY) // plus 1 day
         finishTime = startTime.add(7 * ONE_DAY) // plus 7 days from `startTime`
         const userCount = "10"
-        const userPools = _createUsers(amount, userCount)
-        const totalAmount = 600; // Example total amount
+        const userPools = _createUsers(amount.toString(), userCount)
         const builderType = ["uint256[]","bytes","bytes","tuple((address,uint256)[],uint256)"];
         const params = _createProviderParams(dealProvider.address)
         packedData = ethers.utils.defaultAbiCoder.encode(
@@ -85,7 +88,7 @@ describe("onERC721Received Collateral tests", function () {
                 [],
                 tokenSignature,
                 mainCoinsignature,
-                [[[user1.address, 100], [user2.address, 200], [user3.address, 300]], totalAmount]
+                [rebuildData, totalAmount]
             ]
         )
         collateralPoolId = (await lockDealNFT.totalSupply()).toNumber() + 2
@@ -113,5 +116,35 @@ describe("onERC721Received Collateral tests", function () {
         expect(owner).to.equal(projectOwner.address)
     })
 
-    it("should send two arrays", async () => {})
+    it("should update collateral data", async () => {
+        const mainCoinAmount = (await lockDealNFT.getData(collateralPoolId + 3)).params[0]
+        const rate = (await lockDealNFT.getData(collateralPoolId)).params[2]
+        await lockDealNFT
+            .connect(projectOwner)["safeTransferFrom(address,address,uint256,bytes)"](projectOwner.address, simpleRefundBuilder.address, collateralPoolId, packedData)
+        expect((await lockDealNFT.getData(collateralPoolId + 3)).params[0]).to.equal(mainCoinAmount.add(totalAmount.mul(rate).div(divideRate)))
+    })
+
+    it("should set collateral pool id to new refunds", async () => {
+
+    })
+    
+    it("should create nft for main coin transfer", async () => {
+
+    })
+
+    it("should revert invalid nft token", async () => {
+
+    })
+
+    it("should revert empty data", async () => {
+
+    })
+
+    it("should revert ivalid collateral pool id", async () => {
+
+    })
+
+    it("should revert invalid simple provider params", async () => {
+
+    })
 })
