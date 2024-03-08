@@ -24,17 +24,19 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
     }
 
     function _createFirstNFT(
-        ISimpleProvider provider,
-        address token,
-        address owner,
-        address from,
-        uint256 totalAmount,
-        uint256[] memory params,
-        bytes memory signature
+        Rebuilder memory data,
+        address from
     ) internal firewallProtectedSig(0x3da709b8) returns (uint256 poolId){
-        lockDealNFT.mintForProvider(owner, refundProvider);
-        poolId = lockDealNFT.safeMintAndTransfer(address(refundProvider), token, from, totalAmount, provider, signature);
-        provider.registerPool(poolId, params);
+        lockDealNFT.mintForProvider(data.userData.userPools[0].user, refundProvider);
+        poolId = lockDealNFT.safeMintAndTransfer(
+            address(refundProvider),
+            data.paramsData.token,
+            from,
+            data.userData.totalAmount,
+            data.paramsData.provider,
+            data.tokenSignature
+        );
+        data.paramsData.provider.registerPool(poolId, data.simpleParams);
     }
 
     function _createCollateralProvider(
@@ -99,16 +101,16 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
         uint256 subPoolId,
         bytes memory mainCoinSignature
     ) internal firewallProtectedSig(0x54c3ed4d) {
+        IProvider dealProvider = lockDealNFT.poolIdToProvider(subPoolId);
         lockDealNFT.safeMintAndTransfer(
             address(this),
             mainCoin,
             from,
             mainCoinAmount,
-            collateralProvider,
+            dealProvider,
             mainCoinSignature
         );
         // update sub collateral pool (mainCoinHolder pool)
-        IProvider dealProvider = lockDealNFT.poolIdToProvider(subPoolId);
         uint256[] memory subParams = dealProvider.getParams(subPoolId);
         subParams[0] += mainCoinAmount;
         dealProvider.registerPool(subPoolId, subParams);
