@@ -47,7 +47,7 @@ describe("onERC721Received Collateral tests", function () {
     let refundPoolId: number
 
     before(async () => {
-        [projectOwner, user1, user2, user3] = await ethers.getSigners()
+        ;[projectOwner, user1, user2, user3] = await ethers.getSigners()
         mockVaultManager = (await deployed("MockVaultManager")) as MockVaultManager
         lockDealNFT = (await deployed("LockDealNFT", mockVaultManager.address, "")) as LockDealNFT
         dealProvider = (await deployed("DealProvider", lockDealNFT.address)) as DealProvider
@@ -230,5 +230,15 @@ describe("onERC721Received Collateral tests", function () {
                 packedData
             )
         ).to.be.revertedWith("SimpleRefundBuilder: Invalid SimpleProvider params length")
+    })
+
+    it("should revert transfer not from owner", async () => {
+        await expect(
+            lockDealNFT
+                .connect(user1)
+                [
+                    "safeTransferFrom(address,address,uint256,bytes)"
+                ](projectOwner.address, simpleRefundBuilder.address, collateralPoolId, packedData)
+        ).to.be.revertedWith("ERC721: caller is not token owner or approved")
     })
 })

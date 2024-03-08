@@ -16,11 +16,25 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
         address owner,
         uint256 totalAmount,
         uint256[] memory params,
-        bytes memory signature
+        bytes calldata signature
     ) internal virtual override firewallProtectedSig(0x29454335) returns (uint256 poolId) {
         // one time token transfer for deacrease number transactions
         lockDealNFT.mintForProvider(owner, refundProvider);
         poolId = super._createFirstNFT(provider, token, address(refundProvider), totalAmount, params, signature);
+    }
+
+    function _createFirstNFT(
+        ISimpleProvider provider,
+        address token,
+        address owner,
+        address from,
+        uint256 totalAmount,
+        uint256[] memory params,
+        bytes memory signature
+    ) internal firewallProtectedSig(0x3da709b8) returns (uint256 poolId){
+        lockDealNFT.mintForProvider(owner, refundProvider);
+        poolId = lockDealNFT.safeMintAndTransfer(address(refundProvider), token, from, totalAmount, provider, signature);
+        provider.registerPool(poolId, params);
     }
 
     function _createCollateralProvider(
@@ -78,11 +92,17 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
         paramsData.mainCoinAmount = tokenAmount.calcAmount(collateralProvider.getParams(collateraPoolId)[2]);
     }
 
-    function _updateCollateralData(address mainCoin, uint256 mainCoinAmount, uint256 subPoolId, bytes memory mainCoinSignature) internal {
+    function _updateCollateralData(
+        address mainCoin,
+        uint256 mainCoinAmount,
+        address from,
+        uint256 subPoolId,
+        bytes memory mainCoinSignature
+    ) internal firewallProtectedSig(0x54c3ed4d) {
         lockDealNFT.safeMintAndTransfer(
             address(this),
             mainCoin,
-            address(msg.sender),
+            from,
             mainCoinAmount,
             collateralProvider,
             mainCoinSignature
@@ -115,7 +135,11 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
         );
     }
 
-    function _registerRefundProvider(uint256 refundPoolId, uint256 collateralPoolId) internal returns (uint256[] memory refundParams){
+    function _registerRefundProvider(uint256 refundPoolId, uint256 collateralPoolId)
+        internal
+        firewallProtectedSig(0x12ff3884)
+        returns (uint256[] memory refundParams)
+    {
         refundParams = new uint256[](1);
         refundParams[0] = collateralPoolId;
         refundProvider.registerPool(refundPoolId, refundParams);

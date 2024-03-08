@@ -37,7 +37,7 @@ contract BuilderInternal is BuilderModifiers {
         address owner,
         uint256 totalAmount,
         uint256[] memory params,
-        bytes memory signature
+        bytes calldata signature
     ) internal virtual notZeroAddress(owner) returns (uint256 poolId) {
         poolId = lockDealNFT.safeMintAndTransfer(owner, token, msg.sender, totalAmount, provider, signature);
         provider.registerPool(poolId, params);
