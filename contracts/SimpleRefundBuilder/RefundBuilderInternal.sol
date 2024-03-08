@@ -95,24 +95,22 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
     }
 
     function _updateCollateralData(
-        address mainCoin,
-        uint256 mainCoinAmount,
+        Rebuilder memory data,
         address from,
-        uint256 subPoolId,
-        bytes memory mainCoinSignature
+        uint256 subPoolId
     ) internal firewallProtectedSig(0x54c3ed4d) {
         IProvider dealProvider = lockDealNFT.poolIdToProvider(subPoolId);
         lockDealNFT.safeMintAndTransfer(
             address(this),
-            mainCoin,
+            data.paramsData.mainCoin,
             from,
-            mainCoinAmount,
+            data.paramsData.mainCoinAmount,
             dealProvider,
-            mainCoinSignature
+            data.mainCoinSignature
         );
         // update sub collateral pool (mainCoinHolder pool)
         uint256[] memory subParams = dealProvider.getParams(subPoolId);
-        subParams[0] += mainCoinAmount;
+        subParams[0] += data.paramsData.mainCoinAmount;
         dealProvider.registerPool(subPoolId, subParams);
     }
 

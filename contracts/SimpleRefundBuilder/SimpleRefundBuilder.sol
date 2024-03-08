@@ -41,7 +41,7 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             uint256 firstPoolId = _createFirstNFT(locals, operator);
             locals.refundParams = _registerRefundProvider(firstPoolId - 1, poolId);
             // update the collateral data and create another nft to transfer the mainСoin amount
-            _updateCollateralData(locals.paramsData.mainCoin, locals.paramsData.mainCoinAmount, operator, poolId + 3, locals.mainCoinSignature);
+            _updateCollateralData(locals, operator, poolId + 3);
             // create mass refund pools
             _userDataIterator(
                 locals.paramsData.provider,

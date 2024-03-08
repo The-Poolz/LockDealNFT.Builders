@@ -20,18 +20,18 @@ contract RefundBuilderState is BuilderInternal {
     struct MassPoolsLocals {
         ParamsData paramsData;
         uint256[] simpleParams;
+        uint256[] refundParams;
         uint256 totalAmount;
         uint256 poolId;
-        uint256[] refundParams;
     }
 
     struct Rebuilder {
         ParamsData paramsData;
+        Builder userData;
         uint256[] simpleParams;
         uint256[] refundParams;
         bytes tokenSignature;
         bytes mainCoinSignature;
-        Builder userData;
         uint256 refundPoolId;
     }
 }
