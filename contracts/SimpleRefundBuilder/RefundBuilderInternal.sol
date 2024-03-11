@@ -36,7 +36,7 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
             data.paramsData.provider,
             data.tokenSignature
         );
-        data.paramsData.provider.registerPool(poolId, data.simpleParams);
+        data.paramsData.provider.registerPool(poolId, data.paramsData.simpleParams);
     }
 
     function _createCollateralProvider(
@@ -146,11 +146,9 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
     }
 
     function _userDataIterator(
-        ISimpleProvider provider,
+        ParamsData memory paramsData,
         Builder memory userData,
-        uint256 tokenPoolId,
-        uint256[] memory simpleParams,
-        uint256[] memory refundParams
+        uint256 tokenPoolId
     ) internal firewallProtectedSig(0xbbc1f709) {
         uint256 length = userData.userPools.length;
         require(length > 0, "invalid userPools length");
@@ -161,12 +159,12 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
             address user = userData.userPools[i].user;
             uint256 refundPoolId = lockDealNFT.mintForProvider(user, refundProvider);
             userData.totalAmount -= _createNewNFT(
-                provider,
+                paramsData.provider,
                 tokenPoolId,
                 UserPool(address(refundProvider), userAmount),
-                simpleParams
+                paramsData.simpleParams
             );
-            refundProvider.registerPool(refundPoolId, refundParams);
+            refundProvider.registerPool(refundPoolId, paramsData.refundParams);
             unchecked {
                 ++i;
             }

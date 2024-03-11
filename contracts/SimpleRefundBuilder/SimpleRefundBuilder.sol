@@ -28,28 +28,22 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             require(data.length > 0, "SimpleRefundBuilder: Invalid data length");
             Rebuilder memory locals;
             (
-                locals.simpleParams,
+                locals.paramsData.simpleParams,
                 locals.tokenSignature,
                 locals.mainCoinSignature,
                 locals.userData
             ) = abi.decode(data, (uint256[], bytes, bytes, Builder));
             require(locals.userData.userPools.length > 0, "SimpleRefundBuilder: invalid user length");
-            require(locals.simpleParams.length < 3, "SimpleRefundBuilder: Invalid SimpleProvider params length");
+            require(locals.paramsData.simpleParams.length < 3, "SimpleRefundBuilder: Invalid SimpleProvider params length");
             (locals.refundPoolId, locals.paramsData) = _getRebuildData(poolId, locals.userData.totalAmount);
-            locals.simpleParams = _concatParams(locals.userData.userPools[0].amount, locals.simpleParams);
+            locals.paramsData.simpleParams = _concatParams(locals.userData.userPools[0].amount, locals.paramsData.simpleParams);
             // one time token transfer for deacrease number transactions
             uint256 firstPoolId = _createFirstNFT(locals, operator);
-            locals.refundParams = _registerRefundProvider(firstPoolId - 1, poolId);
+            locals.paramsData.refundParams = _registerRefundProvider(firstPoolId - 1, poolId);
             // update the collateral data and create another nft to transfer the mainСoin amount
             _updateCollateralData(locals, operator, poolId + 3);
             // create mass refund pools
-            _userDataIterator(
-                locals.paramsData.provider,
-                locals.userData,
-                firstPoolId,
-                locals.simpleParams,
-                locals.refundParams
-            );
+            _userDataIterator(locals.paramsData, locals.userData, firstPoolId);
             // transfer back the NFT to the user
             lockDealNFT.transferFrom(address(this), user, poolId);
         }
@@ -74,16 +68,16 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
         require(userData.userPools.length > 0, "SimpleRefundBuilder: invalid user length");
         locals.totalAmount = userData.totalAmount;
         require(locals.totalAmount > 0, "SimpleRefundBuilder: invalid totalAmount");
-        locals.simpleParams = _concatParams(userData.userPools[0].amount, params[1]);
+        locals.paramsData.simpleParams = _concatParams(userData.userPools[0].amount, params[1]);
         locals.poolId = _createFirstNFT(
             locals.paramsData.provider,
             locals.paramsData.token,
             userData.userPools[0].user,
             locals.totalAmount,
-            locals.simpleParams,
+            locals.paramsData.simpleParams,
             tokenSignature
         );
-        locals.refundParams = _finalizeFirstNFT(
+        locals.paramsData.refundParams = _finalizeFirstNFT(
             locals.poolId,
             locals.paramsData.mainCoin,
             locals.totalAmount,
@@ -91,6 +85,6 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             params[0][1],
             mainCoinSignature
         );
-        _userDataIterator(locals.paramsData.provider, userData, locals.poolId, locals.simpleParams, locals.refundParams);
+        _userDataIterator(locals.paramsData, userData, locals.poolId);
     }
 }
