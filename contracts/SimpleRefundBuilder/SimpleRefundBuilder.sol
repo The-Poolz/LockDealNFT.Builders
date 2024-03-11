@@ -45,8 +45,7 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             // create mass refund pools
             _userDataIterator(
                 locals.paramsData.provider,
-                locals.userData.userPools,
-                locals.userData.totalAmount,
+                locals.userData,
                 firstPoolId,
                 locals.simpleParams,
                 locals.refundParams
@@ -92,6 +91,6 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             params[0][1],
             mainCoinSignature
         );
-        _userDataIterator(locals.paramsData.provider, userData.userPools, locals.totalAmount, locals.poolId, locals.simpleParams, locals.refundParams);
+        _userDataIterator(locals.paramsData.provider, userData, locals.poolId, locals.simpleParams, locals.refundParams);
     }
 }

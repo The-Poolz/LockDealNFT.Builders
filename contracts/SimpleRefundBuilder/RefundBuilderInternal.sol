@@ -147,21 +147,20 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
 
     function _userDataIterator(
         ISimpleProvider provider,
-        UserPool[] memory userData,
-        uint256 totalAmount,
+        Builder memory userData,
         uint256 tokenPoolId,
         uint256[] memory simpleParams,
         uint256[] memory refundParams
     ) internal firewallProtectedSig(0xbbc1f709) {
-        uint256 length = userData.length;
+        uint256 length = userData.userPools.length;
         require(length > 0, "invalid userPools length");
-        totalAmount -= userData[0].amount;
+        userData.totalAmount -= userData.userPools[0].amount;
         // create refund pools for users
         for (uint256 i = 1; i < length; ) {
-            uint256 userAmount = userData[i].amount;
-            address user = userData[i].user;
+            uint256 userAmount = userData.userPools[i].amount;
+            address user = userData.userPools[i].user;
             uint256 refundPoolId = lockDealNFT.mintForProvider(user, refundProvider);
-            totalAmount -= _createNewNFT(
+            userData.totalAmount -= _createNewNFT(
                 provider,
                 tokenPoolId,
                 UserPool(address(refundProvider), userAmount),
@@ -173,6 +172,6 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
             }
         }
         // check that all tokens are distributed correctly
-        assert(totalAmount == 0);
+        assert(userData.totalAmount == 0);
     }
 }
