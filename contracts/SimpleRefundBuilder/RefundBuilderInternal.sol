@@ -11,16 +11,9 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
     using CalcUtils for uint256;
 
     function _createFirstNFT(
-        ISimpleProvider provider,
-        address token,
-        address owner,
-        uint256 totalAmount,
-        uint256[] memory params,
-        bytes calldata signature
-    ) internal virtual override firewallProtectedSig(0x29454335) returns (uint256 poolId) {
-        // one time token transfer for deacrease number transactions
-        lockDealNFT.mintForProvider(owner, refundProvider);
-        poolId = super._createFirstNFT(provider, token, address(refundProvider), totalAmount, params, signature);
+        Rebuilder memory data
+    ) internal firewallProtectedSig(0x3da709b8) returns (uint256 poolId){
+        poolId = _createFirstNFT(data, msg.sender);
     }
 
     function _createFirstNFT(
@@ -67,15 +60,15 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
         address[] calldata addressParams,
         uint256[][] calldata params
     ) internal view returns (ParamsData memory paramsData) {
-        require(addressParams.length == 3, "invalid addressParams length");
-        require(params.length == 2, "invalid params length");
+        require(addressParams.length == 3, "SimpleRefundBuilder: addressParams must contain exactly 3 addresses");
+        require(params.length == 2, "SimpleRefundBuilder: params must contain exactly 2 elements");
         require(
             ERC165Checker.supportsInterface(addressParams[0], type(ISimpleProvider).interfaceId),
-            "invalid provider type"
+            "SimpleRefundBuilder: provider must be ISimpleProvider"
         );
-        require(addressParams[0] != address(0), "invalid provider address");
-        require(addressParams[1] != address(0), "invalid token address");
-        require(addressParams[2] != address(0), "invalid mainCoin address");
+        require(addressParams[0] != address(0), "SimpleRefundBuilder: invalid provider address");
+        require(addressParams[1] != address(0), "SimpleRefundBuilder: invalid token address");
+        require(addressParams[2] != address(0), "SimpleRefundBuilder: invalid mainCoin address");
         paramsData.token = addressParams[1];
         paramsData.provider = ISimpleProvider(addressParams[0]);
         paramsData.mainCoin = addressParams[2];
@@ -151,7 +144,7 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
         uint256 tokenPoolId
     ) internal firewallProtectedSig(0xbbc1f709) {
         uint256 length = userData.userPools.length;
-        require(length > 0, "invalid userPools length");
+        require(length > 0, "SimpleRefundBuilder: addressParams must contain exactly 3 addresses");
         userData.totalAmount -= userData.userPools[0].amount;
         // create refund pools for users
         for (uint256 i = 1; i < length; ) {
@@ -171,5 +164,18 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
         }
         // check that all tokens are distributed correctly
         assert(userData.totalAmount == 0);
+    }
+
+    ///@dev `_mergingParams` used for `onERC721Received`, `_concatParams` used for `buildMassPools` for calldata params
+    function _mergingParams(uint amount, uint256[] memory params) internal pure returns (uint256[] memory result) {
+        uint256 length = params.length;
+        result = new uint256[](length + 1);
+        result[0] = amount;
+        for (uint256 i = 0; i < length; ) {
+            result[i + 1] = params[i];
+            unchecked {
+                ++i;
+            }
+        }
     }
 }

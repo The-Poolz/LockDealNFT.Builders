@@ -36,7 +36,7 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             require(locals.userData.userPools.length > 0, "SimpleRefundBuilder: invalid user length");
             require(locals.paramsData.simpleParams.length < 3, "SimpleRefundBuilder: Invalid SimpleProvider params length");
             (locals.refundPoolId, locals.paramsData) = _getRebuildData(poolId, locals.userData.totalAmount);
-            locals.paramsData.simpleParams = _concatParams(locals.userData.userPools[0].amount, locals.paramsData.simpleParams);
+            locals.paramsData.simpleParams = _mergingParams(locals.userData.userPools[0].amount, locals.paramsData.simpleParams);
             // one time token transfer for deacrease number transactions
             uint256 firstPoolId = _createFirstNFT(locals, operator);
             locals.paramsData.refundParams = _registerRefundProvider(firstPoolId - 1, poolId);
@@ -63,28 +63,23 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
         bytes calldata tokenSignature,
         bytes calldata mainCoinSignature
     ) external firewallProtected {
-        MassPoolsLocals memory locals;
+        Rebuilder memory locals;
         locals.paramsData = _validateParamsData(addressParams, params);
         require(userData.userPools.length > 0, "SimpleRefundBuilder: invalid user length");
-        locals.totalAmount = userData.totalAmount;
-        require(locals.totalAmount > 0, "SimpleRefundBuilder: invalid totalAmount");
+        locals.userData = userData;
+        locals.tokenSignature = tokenSignature;
+        locals.mainCoinSignature = mainCoinSignature;
+        require(locals.userData.totalAmount > 0, "SimpleRefundBuilder: invalid totalAmount");
         locals.paramsData.simpleParams = _concatParams(userData.userPools[0].amount, params[1]);
-        locals.poolId = _createFirstNFT(
-            locals.paramsData.provider,
-            locals.paramsData.token,
-            userData.userPools[0].user,
-            locals.totalAmount,
-            locals.paramsData.simpleParams,
-            tokenSignature
-        );
+        locals.refundPoolId = _createFirstNFT(locals);
         locals.paramsData.refundParams = _finalizeFirstNFT(
-            locals.poolId,
+            locals.refundPoolId,
             locals.paramsData.mainCoin,
-            locals.totalAmount,
+            locals.userData.totalAmount,
             locals.paramsData.mainCoinAmount,
             params[0][1],
             mainCoinSignature
         );
-        _userDataIterator(locals.paramsData, userData, locals.poolId);
+        _userDataIterator(locals.paramsData, userData, locals.refundPoolId);
     }
 }
