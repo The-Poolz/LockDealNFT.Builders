@@ -5,14 +5,21 @@ import "./RefundBuilderState.sol";
 import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 
 /// @title RefundBuilderInternal contract
-/// @notice contain internal logic for Simple Refund Builder
+/// @notice Contains internal logic for the Simple Refund Builder
 contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
+    /// @notice Creates the first NFT for the refund provider
+    /// @param data Rebuilder struct containing token data
+    /// @return tokenPoolId Token pool ID of the created simple NFT
     function _createFirstNFT(
         Rebuilder memory data
     ) internal firewallProtectedSig(0x3da709b8) returns (uint256 tokenPoolId){
         tokenPoolId = _createFirstNFT(data, msg.sender);
     }
 
+    /// @notice Creates the first NFT for the refund provider with specified sender
+    /// @param data Rebuilder struct containing token data
+    /// @param from Address of the sender
+    /// @return tokenPoolId Token pool ID of the created simple NFT
     function _createFirstNFT(
         Rebuilder memory data,
         address from
@@ -29,6 +36,10 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
         data.paramsData.provider.registerPool(tokenPoolId, data.paramsData.simpleParams);
     }
 
+    /// @notice Creates the collateral provider
+    /// @param data Rebuilder struct containing mainCoin data
+    /// @param collateralFinishTime Finish time for refund
+    /// @return poolId Collateral pool ID
     function _createCollateralProvider(
         Rebuilder memory data,
         uint256 collateralFinishTime
@@ -49,6 +60,10 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
         lockDealNFT.cloneVaultId(poolId + 2, data.tokenPoolId);
     }
 
+    /// @notice Updates collateral data
+    /// @param data Rebuilder struct containing necessary data
+    /// @param from Address of the sender
+    /// @param subPoolId ID of the sub collateral pool - main coin holder pool
     function _updateCollateralData(
         Rebuilder memory data,
         address from,
@@ -69,6 +84,10 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
         dealProvider.registerPool(subPoolId, subParams);
     }
 
+    /// @notice Finalizes the creation of the first NFT
+    /// @param data Rebuilder struct containing necessary data
+    /// @param collateralFinishTime Finish time for collateral
+    /// @return refundParams Refund parameter `poolIdToCollateralId`
     function _finalizeFirstNFT(
         Rebuilder memory data,
         uint256 collateralFinishTime
@@ -78,6 +97,10 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
         _createCollateralProvider(data, collateralFinishTime));
     }
 
+    /// @notice Registers the refund provider
+    /// @param refundPoolId Refund pool ID
+    /// @param collateralPoolId Collateral pool ID
+    /// @return refundParams Refund parameter poolIdToCollateralId
     function _registerRefundProvider(uint256 refundPoolId, uint256 collateralPoolId)
         internal
         firewallProtectedSig(0x12ff3884)
@@ -88,6 +111,8 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
         refundProvider.registerPool(refundPoolId, refundParams);
     }
 
+    /// @notice Iterates over user data to create refund pools for each user
+    /// @param data Users data, paramsData, tokenPoolId, simple provider address
     function _userDataIterator(
         Rebuilder memory data
     ) internal firewallProtectedSig(0xbbc1f709) {
