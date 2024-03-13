@@ -55,13 +55,12 @@ contract RefundBuilderState is BuilderInternal {
         returns (ParamsData memory paramsData)
     {
         uint256 refundPoolId = collateraPoolId - 2;
-        if (lockDealNFT.poolIdToProvider(refundPoolId) == refundProvider) {
-            paramsData.token = lockDealNFT.tokenOf(refundPoolId);
-            paramsData.mainCoin = lockDealNFT.tokenOf(collateraPoolId);
-            paramsData.provider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(refundPoolId + 1)));
-            paramsData.mainCoinAmount = tokenAmount.calcAmount(collateralProvider.getParams(collateraPoolId)[2]);
-            paramsData.simpleParams = paramsData.provider.getParams(refundPoolId + 1);
-            paramsData.simpleParams[0] = firstAmount;
-        }
+        require(lockDealNFT.poolIdToProvider(refundPoolId) == refundProvider, "SimpleRefundBuilder: invalid collateraPoolId");
+        paramsData.token = lockDealNFT.tokenOf(refundPoolId);
+        paramsData.mainCoin = lockDealNFT.tokenOf(collateraPoolId);
+        paramsData.provider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(refundPoolId + 1)));
+        paramsData.mainCoinAmount = tokenAmount.calcAmount(collateralProvider.getParams(collateraPoolId)[2]);
+        paramsData.simpleParams = paramsData.provider.getParams(refundPoolId + 1);
+        paramsData.simpleParams[0] = firstAmount;
     }
 }
