@@ -33,7 +33,7 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
                 locals.userData
             ) = abi.decode(data, (bytes, bytes, Builder));
             require(locals.userData.userPools.length > 0, "SimpleRefundBuilder: invalid user length");
-            locals.paramsData = _getRebuildData(poolId, locals.userData.totalAmount, locals.userData.userPools[0].amount);
+            locals.paramsData = _getParamsData(poolId, locals.userData.totalAmount, locals.userData.userPools[0].amount);
             // one time token transfer for deacrease number transactions
             locals.tokenPoolId = _createFirstNFT(locals, operator);
             locals.paramsData.refundParams = _registerRefundProvider(locals.tokenPoolId - 1, poolId);

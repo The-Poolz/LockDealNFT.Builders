@@ -2,14 +2,11 @@
 pragma solidity ^0.8.0;
 
 import "./RefundBuilderState.sol";
-import "@poolzfinance/poolz-helper-v2/contracts/CalcUtils.sol";
 import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 
 /// @title RefundBuilderInternal contract
 /// @notice contain internal logic for Simple Refund Builder
 contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
-    using CalcUtils for uint256;
-
     function _createFirstNFT(
         Rebuilder memory data
     ) internal firewallProtectedSig(0x3da709b8) returns (uint256 tokenPoolId){
@@ -50,39 +47,6 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
         collateralParams[2] = collateralFinishTime;
         collateralProvider.registerPool(poolId, collateralParams);
         lockDealNFT.cloneVaultId(poolId + 2, data.tokenPoolId);
-    }
-
-    function _validateParamsData(
-        address[] calldata addressParams,
-        uint256[][] calldata params
-    ) internal view returns (ParamsData memory paramsData) {
-        require(addressParams.length == 3, "SimpleRefundBuilder: addressParams must contain exactly 3 addresses");
-        require(params.length == 2, "SimpleRefundBuilder: params must contain exactly 2 elements");
-        require(
-            ERC165Checker.supportsInterface(addressParams[0], type(ISimpleProvider).interfaceId),
-            "SimpleRefundBuilder: provider must be ISimpleProvider"
-        );
-        require(addressParams[0] != address(0), "SimpleRefundBuilder: invalid provider address");
-        require(addressParams[1] != address(0), "SimpleRefundBuilder: invalid token address");
-        require(addressParams[2] != address(0), "SimpleRefundBuilder: invalid mainCoin address");
-        paramsData.token = addressParams[1];
-        paramsData.provider = ISimpleProvider(addressParams[0]);
-        paramsData.mainCoin = addressParams[2];
-        paramsData.mainCoinAmount = params[0][0];
-    }
-
-    function _getRebuildData(uint256 collateraPoolId, uint256 tokenAmount, uint256 firstAmount)
-        internal
-        view
-        returns (ParamsData memory paramsData)
-    {
-        uint256 refundPoolId = collateraPoolId - 2; // there are no cases where collateraPoolId is less than 2
-        paramsData.token = lockDealNFT.tokenOf(refundPoolId);
-        paramsData.mainCoin = lockDealNFT.tokenOf(collateraPoolId);
-        paramsData.provider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(collateraPoolId - 1)));
-        paramsData.mainCoinAmount = tokenAmount.calcAmount(collateralProvider.getParams(collateraPoolId)[2]);
-        paramsData.simpleParams = paramsData.provider.getParams(collateraPoolId - 1);
-        paramsData.simpleParams[0] = firstAmount;
     }
 
     function _updateCollateralData(
