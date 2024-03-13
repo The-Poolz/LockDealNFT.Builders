@@ -12,16 +12,16 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
 
     function _createFirstNFT(
         Rebuilder memory data
-    ) internal firewallProtectedSig(0x3da709b8) returns (uint256 poolId){
-        poolId = _createFirstNFT(data, msg.sender);
+    ) internal firewallProtectedSig(0x3da709b8) returns (uint256 tokenPoolId){
+        tokenPoolId = _createFirstNFT(data, msg.sender);
     }
 
     function _createFirstNFT(
         Rebuilder memory data,
         address from
-    ) internal firewallProtectedSig(0x3da709b8) returns (uint256 poolId){
+    ) internal firewallProtectedSig(0x3da709b8) returns (uint256 tokenPoolId){
         lockDealNFT.mintForProvider(data.userData.userPools[0].user, refundProvider);
-        poolId = lockDealNFT.safeMintAndTransfer(
+        tokenPoolId = lockDealNFT.safeMintAndTransfer(
             address(refundProvider),
             data.paramsData.token,
             from,
@@ -29,31 +29,27 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
             data.paramsData.provider,
             data.tokenSignature
         );
-        data.paramsData.provider.registerPool(poolId, data.paramsData.simpleParams);
+        data.paramsData.provider.registerPool(tokenPoolId, data.paramsData.simpleParams);
     }
 
     function _createCollateralProvider(
-        address mainCoin,
-        uint256 tokenPoolId,
-        uint256 totalAmount,
-        uint256 mainCoinAmount,
-        uint256 collateralFinishTime,
-        bytes calldata signature
+        Rebuilder memory data,
+        uint256 collateralFinishTime
     ) internal firewallProtectedSig(0x4516d406) returns (uint256 poolId) {
         poolId = lockDealNFT.safeMintAndTransfer(
             msg.sender,
-            mainCoin,
+            data.paramsData.mainCoin,
             msg.sender,
-            mainCoinAmount,
+            data.paramsData.mainCoinAmount,
             collateralProvider,
-            signature
+            data.mainCoinSignature
         );
         uint256[] memory collateralParams = new uint256[](3);
-        collateralParams[0] = totalAmount;
-        collateralParams[1] = mainCoinAmount;
+        collateralParams[0] = data.userData.totalAmount;
+        collateralParams[1] = data.paramsData.mainCoinAmount;
         collateralParams[2] = collateralFinishTime;
         collateralProvider.registerPool(poolId, collateralParams);
-        lockDealNFT.cloneVaultId(poolId + 2, tokenPoolId);
+        lockDealNFT.cloneVaultId(poolId + 2, data.tokenPoolId);
     }
 
     function _validateParamsData(
@@ -78,9 +74,9 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
     function _getRebuildData(uint256 collateraPoolId, uint256 tokenAmount)
         internal
         view
-        returns (uint256 refundPoolId, ParamsData memory paramsData)
+        returns (ParamsData memory paramsData)
     {
-        refundPoolId = collateraPoolId - 2; // there are no cases where collateraPoolId is less than 2
+        uint256 refundPoolId = collateraPoolId - 2; // there are no cases where collateraPoolId is less than 2
         paramsData.token = lockDealNFT.tokenOf(refundPoolId);
         paramsData.mainCoin = lockDealNFT.tokenOf(collateraPoolId);
         paramsData.provider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(collateraPoolId - 1)));
@@ -108,24 +104,12 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
     }
 
     function _finalizeFirstNFT(
-        uint256 tokenPoolId,
-        address mainCoin,
-        uint256 totalAmount,
-        uint256 mainCoinAmount,
-        uint256 collateralFinishTime,
-        bytes calldata signature
+        Rebuilder memory data,
+        uint256 collateralFinishTime
     ) internal firewallProtectedSig(0xcfc2dc78) returns (uint256[] memory refundParams) {
         refundParams = _registerRefundProvider(
-        tokenPoolId - 1,
-        _createCollateralProvider(
-                mainCoin,
-                tokenPoolId,
-                totalAmount,
-                mainCoinAmount,
-                collateralFinishTime,
-                signature
-            )
-        );
+        data.tokenPoolId - 1,
+        _createCollateralProvider(data, collateralFinishTime));
     }
 
     function _registerRefundProvider(uint256 refundPoolId, uint256 collateralPoolId)
@@ -139,31 +123,29 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
     }
 
     function _userDataIterator(
-        ParamsData memory paramsData,
-        Builder memory userData,
-        uint256 tokenPoolId
+        Rebuilder memory data
     ) internal firewallProtectedSig(0xbbc1f709) {
-        uint256 length = userData.userPools.length;
+        uint256 length = data.userData.userPools.length;
         require(length > 0, "SimpleRefundBuilder: addressParams must contain exactly 3 addresses");
-        userData.totalAmount -= userData.userPools[0].amount;
+        data.userData.totalAmount -= data.userData.userPools[0].amount;
         // create refund pools for users
         for (uint256 i = 1; i < length; ) {
-            uint256 userAmount = userData.userPools[i].amount;
-            address user = userData.userPools[i].user;
+            uint256 userAmount = data.userData.userPools[i].amount;
+            address user = data.userData.userPools[i].user;
             uint256 refundPoolId = lockDealNFT.mintForProvider(user, refundProvider);
-            userData.totalAmount -= _createNewNFT(
-                paramsData.provider,
-                tokenPoolId,
+            data.userData.totalAmount -= _createNewNFT(
+                data.paramsData.provider,
+                data.tokenPoolId,
                 UserPool(address(refundProvider), userAmount),
-                paramsData.simpleParams
+                data.paramsData.simpleParams
             );
-            refundProvider.registerPool(refundPoolId, paramsData.refundParams);
+            refundProvider.registerPool(refundPoolId, data.paramsData.refundParams);
             unchecked {
                 ++i;
             }
         }
         // check that all tokens are distributed correctly
-        assert(userData.totalAmount == 0);
+        assert(data.userData.totalAmount == 0);
     }
 
     ///@dev `_mergingParams` used for `onERC721Received`, `_concatParams` used for `buildMassPools` for calldata params

@@ -51,32 +51,11 @@ describe("onERC721Received Collateral tests", function () {
         mockVaultManager = (await deployed("MockVaultManager")) as MockVaultManager
         lockDealNFT = (await deployed("LockDealNFT", mockVaultManager.address, "")) as LockDealNFT
         dealProvider = (await deployed("DealProvider", lockDealNFT.address)) as DealProvider
-        lockProvider = (await deployed(
-            "LockDealProvider",
-            lockDealNFT.address,
-            dealProvider.address
-        )) as LockDealProvider
-        timedProvider = (await deployed(
-            "TimedDealProvider",
-            lockDealNFT.address,
-            lockProvider.address
-        )) as TimedDealProvider
-        collateralProvider = (await deployed(
-            "CollateralProvider",
-            lockDealNFT.address,
-            dealProvider.address
-        )) as CollateralProvider
-        refundProvider = (await deployed(
-            "RefundProvider",
-            lockDealNFT.address,
-            collateralProvider.address
-        )) as RefundProvider
-        simpleRefundBuilder = (await deployed(
-            "SimpleRefundBuilder",
-            lockDealNFT.address,
-            refundProvider.address,
-            collateralProvider.address
-        )) as SimpleRefundBuilder
+        lockProvider = (await deployed("LockDealProvider", lockDealNFT.address, dealProvider.address)) as LockDealProvider
+        timedProvider = (await deployed("TimedDealProvider", lockDealNFT.address, lockProvider.address)) as TimedDealProvider
+        collateralProvider = (await deployed("CollateralProvider", lockDealNFT.address, dealProvider.address)) as CollateralProvider
+        refundProvider = (await deployed("RefundProvider", lockDealNFT.address, collateralProvider.address)) as RefundProvider
+        simpleRefundBuilder = (await deployed("SimpleRefundBuilder", lockDealNFT.address, refundProvider.address, collateralProvider.address)) as SimpleRefundBuilder
         await Promise.all([
             lockDealNFT.setApprovedContract(refundProvider.address, true),
             lockDealNFT.setApprovedContract(lockProvider.address, true),

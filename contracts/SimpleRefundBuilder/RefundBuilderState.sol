@@ -24,6 +24,6 @@ contract RefundBuilderState is BuilderInternal {
         Builder userData;
         bytes tokenSignature;
         bytes mainCoinSignature;
-        uint256 refundPoolId;
+        uint256 tokenPoolId;
     }
 }
