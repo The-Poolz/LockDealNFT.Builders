@@ -28,15 +28,12 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             require(data.length > 0, "SimpleRefundBuilder: Invalid data length");
             Rebuilder memory locals;
             (
-                locals.paramsData.simpleParams,
                 locals.tokenSignature,
                 locals.mainCoinSignature,
                 locals.userData
-            ) = abi.decode(data, (uint256[], bytes, bytes, Builder));
+            ) = abi.decode(data, (bytes, bytes, Builder));
             require(locals.userData.userPools.length > 0, "SimpleRefundBuilder: invalid user length");
-            require(locals.paramsData.simpleParams.length < 3, "SimpleRefundBuilder: Invalid SimpleProvider params length");
-            locals.paramsData = _getRebuildData(poolId, locals.userData.totalAmount);
-            locals.paramsData.simpleParams = _mergingParams(locals.userData.userPools[0].amount, locals.paramsData.simpleParams);
+            locals.paramsData = _getRebuildData(poolId, locals.userData.totalAmount, locals.userData.userPools[0].amount);
             // one time token transfer for deacrease number transactions
             locals.tokenPoolId = _createFirstNFT(locals, operator);
             locals.paramsData.refundParams = _registerRefundProvider(locals.tokenPoolId - 1, poolId);
@@ -44,7 +41,7 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             _updateCollateralData(locals, operator, poolId + 3);
             // create mass refund pools
             _userDataIterator(locals);
-            // transfer back the NFT to the user
+            // // transfer back the NFT to the user
             lockDealNFT.transferFrom(address(this), user, poolId);
         }
         return this.onERC721Received.selector;

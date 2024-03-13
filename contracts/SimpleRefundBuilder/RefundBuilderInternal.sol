@@ -71,7 +71,7 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
         paramsData.mainCoinAmount = params[0][0];
     }
 
-    function _getRebuildData(uint256 collateraPoolId, uint256 tokenAmount)
+    function _getRebuildData(uint256 collateraPoolId, uint256 tokenAmount, uint256 firstAmount)
         internal
         view
         returns (ParamsData memory paramsData)
@@ -81,6 +81,8 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
         paramsData.mainCoin = lockDealNFT.tokenOf(collateraPoolId);
         paramsData.provider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(collateraPoolId - 1)));
         paramsData.mainCoinAmount = tokenAmount.calcAmount(collateralProvider.getParams(collateraPoolId)[2]);
+        paramsData.simpleParams = paramsData.provider.getParams(collateraPoolId - 1);
+        paramsData.simpleParams[0] = firstAmount;
     }
 
     function _updateCollateralData(
@@ -146,18 +148,5 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
         }
         // check that all tokens are distributed correctly
         assert(data.userData.totalAmount == 0);
-    }
-
-    ///@dev `_mergingParams` used for `onERC721Received`, `_concatParams` used for `buildMassPools` for calldata params
-    function _mergingParams(uint amount, uint256[] memory params) internal pure returns (uint256[] memory result) {
-        uint256 length = params.length;
-        result = new uint256[](length + 1);
-        result[0] = amount;
-        for (uint256 i = 0; i < length; ) {
-            result[i + 1] = params[i];
-            unchecked {
-                ++i;
-            }
-        }
     }
 }

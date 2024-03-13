@@ -30,7 +30,7 @@ describe("onERC721Received Collateral tests", function () {
     let startTime: BigNumber, finishTime: BigNumber
     let rebuildData: (string | number)[][]
     let totalAmount: BigNumber
-    const builderType = ["uint256[]", "bytes", "bytes", "tuple((address,uint256)[],uint256)"]
+    const builderType = ["bytes", "bytes", "tuple((address,uint256)[],uint256)"]
     const divideRate = ethers.utils.parseUnits("1", 21)
     const mainCoinAmount = ethers.utils.parseEther("10")
     const amount = ethers.utils.parseEther("100")
@@ -74,14 +74,13 @@ describe("onERC721Received Collateral tests", function () {
     })
 
     beforeEach(async () => {
-        addressParams = [dealProvider.address, token, BUSD]
+        addressParams = [lockProvider.address, token, BUSD]
         startTime = ethers.BigNumber.from((await time.latest()) + ONE_DAY) // plus 1 day
         finishTime = startTime.add(7 * ONE_DAY) // plus 7 days from `startTime`
         const userCount = "10"
         const userPools = _createUsers(amount.toString(), userCount)
-        const params = _createProviderParams(dealProvider.address)
+        const params = _createProviderParams(lockProvider.address)
         packedData = ethers.utils.defaultAbiCoder.encode(builderType, [
-            [],
             tokenSignature,
             mainCoinsignature,
             [rebuildData, totalAmount],
@@ -192,23 +191,6 @@ describe("onERC721Received Collateral tests", function () {
                 packedData
             )
         ).to.be.revertedWith("SimpleRefundBuilder: Invalid collateral provider")
-    })
-
-    it("should revert invalid simple provider params", async () => {
-        packedData = ethers.utils.defaultAbiCoder.encode(builderType, [
-            [amount, amount, amount, amount],
-            tokenSignature,
-            mainCoinsignature,
-            [rebuildData, totalAmount],
-        ])
-        await expect(
-            lockDealNFT["safeTransferFrom(address,address,uint256,bytes)"](
-                projectOwner.address,
-                simpleRefundBuilder.address,
-                collateralPoolId,
-                packedData
-            )
-        ).to.be.revertedWith("SimpleRefundBuilder: Invalid SimpleProvider params length")
     })
 
     it("should revert transfer not from owner", async () => {
