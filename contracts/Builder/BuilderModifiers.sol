@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "./BuilderState.sol";
 
-contract BuilderModifiers is BuilderState {
+abstract contract BuilderModifiers is BuilderState {
     modifier notZeroAddress(address _address) {
         _notZeroAddress(_address);
         _;

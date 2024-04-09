@@ -7,13 +7,26 @@ import "../Builder/BuilderInternal.sol";
 
 /// @title RefundBuilderState contract
 /// @notice This contract contains state variables and internal functions for the Simple Refund Builder
-contract RefundBuilderState is BuilderInternal {
+abstract contract RefundBuilderState is BuilderInternal {
     using CalcUtils for uint256;
 
     // Instance of the refund provider contract
-    IProvider public refundProvider;
+    IProvider public immutable refundProvider;
     // Instance of the collateral provider contract
-    IProvider public collateralProvider;
+    IProvider public immutable collateralProvider;
+
+    constructor(IProvider _refund, IProvider _collateral) {
+        require(
+            address(_refund) != address(0),
+            "SimpleRefundBuilder: RefundProvider zero address"
+        );
+        require(
+            address(_collateral) != address(0),
+            "SimpleRefundBuilder: CollateralProvider zero address"
+        );
+        refundProvider = _refund;
+        collateralProvider = _collateral;
+    }
 
     struct ParamsData {
         ISimpleProvider provider; // Simple provider instance
@@ -71,9 +84,10 @@ contract RefundBuilderState is BuilderInternal {
         require(lockDealNFT.poolIdToProvider(refundPoolId) == refundProvider, "SimpleRefundBuilder: invalid refundPoolId");
         paramsData.token = lockDealNFT.tokenOf(refundPoolId);
         paramsData.mainCoin = lockDealNFT.tokenOf(collateraPoolId);
-        paramsData.provider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(refundPoolId + 1)));
+        uint256 poolId = refundPoolId + 1;
+        paramsData.provider = ISimpleProvider(address(lockDealNFT.poolIdToProvider(poolId)));
         paramsData.mainCoinAmount = tokenAmount.calcAmount(collateralProvider.getParams(collateraPoolId)[2]);
-        paramsData.simpleParams = paramsData.provider.getParams(refundPoolId + 1);
+        paramsData.simpleParams = paramsData.provider.getParams(poolId);
         paramsData.simpleParams[0] = firstAmount;
     }
 }

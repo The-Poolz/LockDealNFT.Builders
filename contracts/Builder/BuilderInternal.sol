@@ -4,13 +4,13 @@ pragma solidity ^0.8.0;
 import "./BuilderModifiers.sol";
 import "@poolzfinance/poolz-helper-v2/contracts/interfaces/ISimpleProvider.sol";
 
-contract BuilderInternal is BuilderModifiers {
+abstract contract BuilderInternal is BuilderModifiers {
     ///@dev if params is empty, then return [amount]
     function _concatParams(uint amount, uint256[] calldata params) internal pure returns (uint256[] memory result) {
         uint256 length = params.length;
         result = new uint256[](length + 1);
         result[0] = amount;
-        for (uint256 i = 0; i < length; ) {
+        for (uint256 i; i < length; ) {
             result[i + 1] = params[i];
             unchecked {
                 ++i;
