@@ -6,13 +6,12 @@ import { TimedDealProvider } from "../typechain-types"
 import { CollateralProvider } from "../typechain-types"
 import { RefundProvider } from "../typechain-types"
 import { SimpleRefundBuilder } from "../typechain-types"
-import { deployed } from "@poolzfinance/poolz-helper-v2"
+import { deployed, constants } from "@poolzfinance/poolz-helper-v2"
 import { _createUsers, _logGasPrice } from "./helper"
 import { time } from "@nomicfoundation/hardhat-network-helpers"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { expect } from "chai"
 import { BigNumber, Bytes } from "ethers"
-import { BuilderState } from "../typechain-types/contracts/SimpleBuilder/SimpleBuilder"
 import { ethers } from "hardhat"
 
 describe("onERC721Received Collateral tests", function () {
@@ -198,5 +197,23 @@ describe("onERC721Received Collateral tests", function () {
             lockDealNFT
                 .connect(user1)["safeTransferFrom(address,address,uint256,bytes)"](projectOwner.address, simpleRefundBuilder.address, collateralPoolId, packedData)
         ).to.be.revertedWith("ERC721: caller is not token owner or approved")
+    })
+    
+    it("should revert zero lockDealNFT address", async () => {
+        const simpleRefundBuilder = await ethers.getContractFactory("SimpleRefundBuilder")
+        await expect(simpleRefundBuilder.deploy(ethers.constants.AddressZero, refundProvider.address, collateralProvider.address)
+        ).to.be.revertedWith("SimpleRefundBuilder: lockDealNFT zero address")
+    })
+
+    it("should revert zero RefundProvider address", async () => {
+        const simpleRefundBuilder = await ethers.getContractFactory("SimpleRefundBuilder")
+        await expect(simpleRefundBuilder.deploy(lockDealNFT.address, ethers.constants.AddressZero, collateralProvider.address)
+        ).to.be.revertedWith("SimpleRefundBuilder: RefundProvider zero address")
+    })
+
+    it("should revert zero CollateralProvider address", async () => {
+        const simpleRefundBuilder = await ethers.getContractFactory("SimpleRefundBuilder")
+        await expect(simpleRefundBuilder.deploy(lockDealNFT.address, refundProvider.address, ethers.constants.AddressZero)
+        ).to.be.revertedWith("SimpleRefundBuilder: CollateralProvider zero address")
     })
 })

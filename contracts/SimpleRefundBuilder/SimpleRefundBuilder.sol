@@ -9,8 +9,20 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
     using CalcUtils for uint256;
 
-    constructor(ILockDealNFT _nft, IProvider _refund, IProvider _collateral) {
-        lockDealNFT = _nft;
+    constructor(ILockDealNFT _lockDealNFT, IProvider _refund, IProvider _collateral) {
+        require(
+            address(_lockDealNFT) != address(0),
+            "SimpleRefundBuilder: lockDealNFT zero address"
+        );
+        require(
+            address(_refund) != address(0),
+            "SimpleRefundBuilder: RefundProvider zero address"
+        );
+        require(
+            address(_collateral) != address(0),
+            "SimpleRefundBuilder: CollateralProvider zero address"
+        );
+        lockDealNFT = _lockDealNFT;
         refundProvider = _refund;
         collateralProvider = _collateral;
     }

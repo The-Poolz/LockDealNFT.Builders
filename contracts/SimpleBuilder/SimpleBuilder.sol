@@ -8,8 +8,12 @@ import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 /// @title SimpleBuilder contract
 /// @notice This contract is used to create mass lock deals(NFTs)
 contract SimpleBuilder is ERC721Holder, BuilderInternal, FirewallConsumer {
-    constructor(ILockDealNFT _nft) {
-        lockDealNFT = _nft;
+    constructor(ILockDealNFT _lockDealNFT) {
+        require(
+            address(_lockDealNFT) != address(0),
+            "SimpleBuilder: lockDealNFT zero address"
+        );
+        lockDealNFT = _lockDealNFT;
     }
 
     struct MassPoolsLocals {
