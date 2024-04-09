@@ -11,7 +11,7 @@ contract SimpleBuilder is ERC721Holder, BuilderInternal, FirewallConsumer {
     constructor(ILockDealNFT _lockDealNFT) {
         require(
             address(_lockDealNFT) != address(0),
-            "SimpleBuilder: zero address"
+            "SimpleBuilder: lockDealNFT zero address"
         );
         lockDealNFT = _lockDealNFT;
     }

@@ -117,7 +117,6 @@ contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
         Rebuilder memory data
     ) internal firewallProtectedSig(0xbbc1f709) {
         uint256 length = data.userData.userPools.length;
-        require(length > 0, "SimpleRefundBuilder: invalid user length");
         data.userData.totalAmount -= data.userData.userPools[0].amount;
         // create refund pools for users
         for (uint256 i = 1; i < length; ) {
