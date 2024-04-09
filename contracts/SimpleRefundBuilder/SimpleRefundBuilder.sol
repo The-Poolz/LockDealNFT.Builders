@@ -13,7 +13,7 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
         ILockDealNFT _lockDealNFT,
         IProvider _refund,
         IProvider _collateral
-    ) RefundBuilderState(_lockDealNFT, _refund, _collateral) {}
+    ) BuilderState(_lockDealNFT) RefundBuilderState(_refund, _collateral) {}
 
     /// @notice ERC721 receiver function
     /// @dev This function is called when an NFT is transferred to this contract

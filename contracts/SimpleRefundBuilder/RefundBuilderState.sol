@@ -7,7 +7,7 @@ import "../Builder/BuilderInternal.sol";
 
 /// @title RefundBuilderState contract
 /// @notice This contract contains state variables and internal functions for the Simple Refund Builder
-contract RefundBuilderState is BuilderInternal {
+abstract contract RefundBuilderState is BuilderInternal {
     using CalcUtils for uint256;
 
     // Instance of the refund provider contract
@@ -15,7 +15,7 @@ contract RefundBuilderState is BuilderInternal {
     // Instance of the collateral provider contract
     IProvider public immutable collateralProvider;
 
-    constructor(ILockDealNFT _lockDealNFT, IProvider _refund, IProvider _collateral) BuilderState(_lockDealNFT) {
+    constructor(IProvider _refund, IProvider _collateral) {
         require(
             address(_refund) != address(0),
             "SimpleRefundBuilder: RefundProvider zero address"
