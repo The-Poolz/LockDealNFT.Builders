@@ -202,7 +202,7 @@ describe("onERC721Received Collateral tests", function () {
     it("should revert zero lockDealNFT address", async () => {
         const simpleRefundBuilder = await ethers.getContractFactory("SimpleRefundBuilder")
         await expect(simpleRefundBuilder.deploy(ethers.constants.AddressZero, refundProvider.address, collateralProvider.address)
-        ).to.be.revertedWith("SimpleRefundBuilder: lockDealNFT zero address")
+        ).to.be.revertedWith("BuilderState: lockDealNFT zero address")
     })
 
     it("should revert zero RefundProvider address", async () => {

@@ -6,7 +6,7 @@ import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 
 /// @title RefundBuilderInternal contract
 /// @notice Contains internal logic for the Simple Refund Builder
-contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
+abstract contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer {
     /// @notice Creates the first NFT for the refund provider
     /// @param data Rebuilder struct containing token data
     /// @return tokenPoolId Token pool ID of the created simple NFT
