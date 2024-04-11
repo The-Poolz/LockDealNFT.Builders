@@ -54,5 +54,6 @@ contract SimpleBuilder is ERC721Holder, BuilderInternal, FirewallConsumer {
             }
         }
         assert(locals.totalAmount == 0);
+        emit MassPoolsCreated(locals.token, locals.provider, locals.poolId, userData.userPools.length);
     }
 }

@@ -9,6 +9,14 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
     using CalcUtils for uint256;
 
+    event MassPoolsRebuilded(
+        address indexed token,
+        IProvider indexed provider,
+        uint256 collateralPoolId,
+        uint256 firstPoolId,
+        uint256 userLength
+    );
+
     constructor(
         ILockDealNFT _lockDealNFT,
         IProvider _refund,
@@ -43,6 +51,7 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             _buildMassPools(locals);
             // // transfer back the NFT to the user
             lockDealNFT.transferFrom(address(this), user, collateralPoolId);
+            emit MassPoolsRebuilded(locals.paramsData.token, locals.paramsData.provider, collateralPoolId, locals.tokenPoolId, locals.userData.userPools.length);
         }
         return this.onERC721Received.selector;
     }
@@ -71,5 +80,6 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
         locals.tokenPoolId = _createFirstNFT(locals);
         locals.paramsData.refundParams = _finalizeFirstNFT(locals, params[0][1]);
         _buildMassPools(locals);
+        emit MassPoolsCreated(locals.paramsData.token, locals.paramsData.provider, locals.tokenPoolId, userData.userPools.length);
     }
 }
