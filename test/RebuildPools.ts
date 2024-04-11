@@ -1,13 +1,12 @@
 import { MockVaultManager } from "../typechain-types"
 import { DealProvider } from "../typechain-types"
-import { LockDealNFT } from "../typechain-types"
 import { LockDealProvider } from "../typechain-types"
 import { TimedDealProvider } from "../typechain-types"
 import { CollateralProvider } from "../typechain-types"
 import { RefundProvider } from "../typechain-types"
 import { SimpleRefundBuilder } from "../typechain-types"
-import { deployed, constants } from "@poolzfinance/poolz-helper-v2"
-import { _createUsers, _logGasPrice } from "./helper"
+import { _createUsers, _logGasPrice, deployed } from "./helper"
+import LockDealNFTArtifact from "@poolzfinance/lockdeal-nft/artifacts/contracts/LockDealNFT/LockDealNFT.sol/LockDealNFT.json"
 import { time } from "@nomicfoundation/hardhat-network-helpers"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { expect } from "chai"
@@ -20,7 +19,7 @@ describe("onERC721Received Collateral tests", function () {
     let mockVaultManager: MockVaultManager
     let timedProvider: TimedDealProvider
     let simpleRefundBuilder: SimpleRefundBuilder
-    let lockDealNFT: LockDealNFT
+    let lockDealNFT: any
     let addressParams: [string, string, string]
     let projectOwner: SignerWithAddress
     let user1: SignerWithAddress
@@ -48,7 +47,9 @@ describe("onERC721Received Collateral tests", function () {
     before(async () => {
         [projectOwner, user1, user2, user3] = await ethers.getSigners()
         mockVaultManager = (await deployed("MockVaultManager")) as MockVaultManager
-        lockDealNFT = (await deployed("LockDealNFT", mockVaultManager.address, "")) as LockDealNFT
+        const LockDealNFT = await ethers.getContractFactory(LockDealNFTArtifact.abi, LockDealNFTArtifact.bytecode)
+        lockDealNFT = await LockDealNFT.deploy(mockVaultManager.address, "")
+        await lockDealNFT.deployed()
         dealProvider = (await deployed("DealProvider", lockDealNFT.address)) as DealProvider
         lockProvider = (await deployed("LockDealProvider", lockDealNFT.address, dealProvider.address)) as LockDealProvider
         timedProvider = (await deployed("TimedDealProvider", lockDealNFT.address, lockProvider.address)) as TimedDealProvider
@@ -153,14 +154,16 @@ describe("onERC721Received Collateral tests", function () {
 
     it("should revert invalid nft token", async () => {
         // fake nft token
-        const newlockDealNFT = (await deployed("LockDealNFT", mockVaultManager.address, "")) as LockDealNFT
-        const dealProvider = (await deployed("DealProvider", newlockDealNFT.address)) as DealProvider
-        await newlockDealNFT.setApprovedContract(dealProvider.address, true)
-        await newlockDealNFT.setApprovedContract(simpleRefundBuilder.address, true)
+        const LockDealNFT = await ethers.getContractFactory(LockDealNFTArtifact.abi, LockDealNFTArtifact.bytecode)
+        const newLockDealNFT = await LockDealNFT.deploy(mockVaultManager.address, "")
+        await newLockDealNFT.deployed()
+        const dealProvider = (await deployed("DealProvider", newLockDealNFT.address)) as DealProvider
+        await newLockDealNFT.setApprovedContract(dealProvider.address, true)
+        await newLockDealNFT.setApprovedContract(simpleRefundBuilder.address, true)
         await dealProvider.createNewPool([projectOwner.address, token], [amount], tokenSignature)
         // send fake nft token to simple refund builder
         await expect(
-            newlockDealNFT["safeTransferFrom(address,address,uint256,bytes)"](
+            newLockDealNFT["safeTransferFrom(address,address,uint256,bytes)"](
                 projectOwner.address,
                 simpleRefundBuilder.address,
                 0,
