@@ -6,6 +6,8 @@ import "@poolzfinance/poolz-helper-v2/contracts/interfaces/ILockDealNFT.sol";
 contract BuilderState {
     ILockDealNFT public immutable lockDealNFT;
 
+    event MassPoolsCreated(address indexed token, IProvider indexed provider, uint256 firstPoolId, uint256 userLength);
+
     constructor(ILockDealNFT _lockDealNFT) {
         require(address(_lockDealNFT) != address(0), "BuilderState: lockDealNFT zero address");
         lockDealNFT = _lockDealNFT;

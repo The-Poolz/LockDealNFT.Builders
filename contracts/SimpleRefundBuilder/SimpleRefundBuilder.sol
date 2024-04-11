@@ -9,6 +9,14 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
     using CalcUtils for uint256;
 
+    event MassPoolsRebuilded(
+        address indexed token,
+        IProvider indexed provider,
+        uint256 collateralPoolId,
+        uint256 firstPoolId,
+        uint256 userLength
+    );
+
     constructor(
         ILockDealNFT _lockDealNFT,
         IProvider _refund,
@@ -36,13 +44,21 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
             locals.paramsData = _getParamsData(collateralPoolId, locals.userData.totalAmount, locals.userData.userPools[0].amount);
             // one time transfer for decreasing the number of transactions
             locals.tokenPoolId = _createFirstNFT(locals, operator);
-            locals.paramsData.refundParams = _registerRefundProvider(locals.tokenPoolId - 1, collateralPoolId);
+            uint256 firstPoolId = locals.tokenPoolId - 1;
+            locals.paramsData.refundParams = _registerRefundProvider(firstPoolId, collateralPoolId);
             // update the collateral data and create another nft to transfer the mainСoin amount
             _updateCollateralData(locals, operator, collateralPoolId + 3);
             // create mass refund pools
             _buildMassPools(locals);
             // // transfer back the NFT to the user
             lockDealNFT.transferFrom(address(this), user, collateralPoolId);
+            emit MassPoolsRebuilded(
+                locals.paramsData.token,
+                locals.paramsData.provider,
+                collateralPoolId,
+                firstPoolId,
+                locals.userData.userPools.length
+            );
         }
         return this.onERC721Received.selector;
     }
@@ -71,5 +87,6 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
         locals.tokenPoolId = _createFirstNFT(locals);
         locals.paramsData.refundParams = _finalizeFirstNFT(locals, params[0][1]);
         _buildMassPools(locals);
+        emit MassPoolsCreated(locals.paramsData.token, locals.paramsData.provider, locals.tokenPoolId - 1, userData.userPools.length);
     }
 }

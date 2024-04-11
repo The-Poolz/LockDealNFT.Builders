@@ -220,4 +220,16 @@ describe("onERC721Received Collateral tests", function () {
         await expect(simpleRefundBuilder.deploy(lockDealNFT.address, refundProvider.address, ethers.constants.AddressZero)
         ).to.be.revertedWith("SimpleRefundBuilder: CollateralProvider zero address")
     })
+
+    it("should emit rebuilder event", async () => {
+        const firstPoolId = await lockDealNFT.totalSupply()
+        const tx = await lockDealNFT["safeTransferFrom(address,address,uint256,bytes)"](
+                projectOwner.address,
+                simpleRefundBuilder.address,
+                collateralPoolId,
+                packedData
+            )
+        await expect(tx).to.emit(simpleRefundBuilder, "MassPoolsRebuilded")
+            .withArgs(token, lockProvider.address, collateralPoolId, firstPoolId, rebuildData.length)
+    })
 })
