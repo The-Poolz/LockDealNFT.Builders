@@ -92,6 +92,13 @@ describe('Simple Builder tests', function () {
     finishTime = startTime.add(7 * ONE_DAY); // plus 7 days from `startTime`
   });
 
+  it("should emit 'MassPoolsCreated' event", async () => {
+    const params = _createProviderParams(dealProvider.address);
+    const firstPoolId = await lockDealNFT.totalSupply();
+    const tx = await simpleBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params, signature);
+    await expect(tx).to.emit(simpleBuilder, 'MassPoolsCreated').withArgs(token, dealProvider.address, firstPoolId, userData.userPools.length);
+  });
+
   it('should create 10 dealProvider pools', async () => {
     const userCount = '10';
     const params = _createProviderParams(dealProvider.address);

@@ -148,6 +148,13 @@ describe('Simple Refund Builder tests', function () {
     poolId = (await lockDealNFT.totalSupply()).toNumber();
   });
 
+  it("should emit 'MassPoolsCreated' event", async () => {
+    const params = _createProviderParams(dealProvider.address);
+    const tx = await simpleRefundBuilder.connect(projectOwner)
+      .buildMassPools(addressParams, userData, params, tokenSignature, mainCoinsignature, { gasLimit });
+    await expect(tx).to.emit(simpleRefundBuilder, 'MassPoolsCreated').withArgs(token, dealProvider.address, poolId, userData.userPools.length);
+  });
+
   it('should create 10 simple refund pools with dealProvider', async () => {
     const userCount = '10';
     mainCoinAmount = ethers.utils.parseEther('10').mul(userCount);
