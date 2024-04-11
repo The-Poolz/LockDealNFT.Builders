@@ -19,12 +19,12 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
     /// @dev This function is called when an NFT is transferred to this contract
     /// @param operator - the address that called the `safeTransferFrom` function
     /// @param user - the address that owns the NFT
-    /// @param poolId - the ID of the Collateral NFT
+    /// @param collateralPoolId - the ID of the Collateral NFT
     /// @param data - additional data with the NFT
-    function onERC721Received(address operator, address user, uint256 poolId, bytes calldata data) external virtual override firewallProtected returns (bytes4) {
+    function onERC721Received(address operator, address user, uint256 collateralPoolId, bytes calldata data) external virtual override firewallProtected returns (bytes4) {
         require(msg.sender == address(lockDealNFT), "SimpleRefundBuilder: Only LockDealNFT contract allowed");
         if (operator != address(this)) {
-            require(lockDealNFT.poolIdToProvider(poolId) == collateralProvider, "SimpleRefundBuilder: Invalid collateral provider");
+            require(lockDealNFT.poolIdToProvider(collateralPoolId) == collateralProvider, "SimpleRefundBuilder: Invalid collateral provider");
             require(data.length > 0, "SimpleRefundBuilder: Invalid data length");
             Rebuilder memory locals;
             (
@@ -33,16 +33,16 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
                 locals.userData
             ) = abi.decode(data, (bytes, bytes, Builder));
             require(locals.userData.userPools.length > 0, "SimpleRefundBuilder: invalid user length");
-            locals.paramsData = _getParamsData(poolId, locals.userData.totalAmount, locals.userData.userPools[0].amount);
-            // one time token transfer for deacrease number transactions
+            locals.paramsData = _getParamsData(collateralPoolId, locals.userData.totalAmount, locals.userData.userPools[0].amount);
+            // one time transfer for decreasing the number of transactions
             locals.tokenPoolId = _createFirstNFT(locals, operator);
-            locals.paramsData.refundParams = _registerRefundProvider(locals.tokenPoolId - 1, poolId);
+            locals.paramsData.refundParams = _registerRefundProvider(locals.tokenPoolId - 1, collateralPoolId);
             // update the collateral data and create another nft to transfer the mainСoin amount
-            _updateCollateralData(locals, operator, poolId + 3);
+            _updateCollateralData(locals, operator, collateralPoolId + 3);
             // create mass refund pools
-            _userDataIterator(locals);
+            _buildMassPools(locals);
             // // transfer back the NFT to the user
-            lockDealNFT.transferFrom(address(this), user, poolId);
+            lockDealNFT.transferFrom(address(this), user, collateralPoolId);
         }
         return this.onERC721Received.selector;
     }
@@ -70,6 +70,6 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
         locals.paramsData.simpleParams = _concatParams(userData.userPools[0].amount, params[1]);
         locals.tokenPoolId = _createFirstNFT(locals);
         locals.paramsData.refundParams = _finalizeFirstNFT(locals, params[0][1]);
-        _userDataIterator(locals);
+        _buildMassPools(locals);
     }
 }

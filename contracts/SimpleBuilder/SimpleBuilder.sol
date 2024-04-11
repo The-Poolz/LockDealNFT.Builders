@@ -42,7 +42,7 @@ contract SimpleBuilder is ERC721Holder, BuilderInternal, FirewallConsumer {
         locals.provider = ISimpleProvider(addressParams[0]);
         UserPool calldata firstUserData = userData.userPools[0];
         locals.length = userData.userPools.length;
-        // one time transfer for deacrease number transactions
+        // one time transfer for decreasing the number of transactions
         uint256[] memory simpleParams = _concatParams(firstUserData.amount, params);
         locals.poolId = _createFirstNFT(locals.provider, locals.token, firstUserData.user, locals.totalAmount, simpleParams, signature);
         locals.totalAmount -= firstUserData.amount;

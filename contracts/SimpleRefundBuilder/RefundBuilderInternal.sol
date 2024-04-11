@@ -39,12 +39,12 @@ abstract contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer 
     /// @notice Creates the collateral provider
     /// @param data Rebuilder struct containing mainCoin data
     /// @param collateralFinishTime Finish time for refund
-    /// @return poolId Collateral pool ID
+    /// @return collateralPoolId Collateral pool ID
     function _createCollateralProvider(
         Rebuilder memory data,
         uint256 collateralFinishTime
-    ) internal firewallProtectedSig(0x4516d406) returns (uint256 poolId) {
-        poolId = lockDealNFT.safeMintAndTransfer(
+    ) internal firewallProtectedSig(0x4516d406) returns (uint256 collateralPoolId) {
+        collateralPoolId = lockDealNFT.safeMintAndTransfer(
             msg.sender,
             data.paramsData.mainCoin,
             msg.sender,
@@ -56,8 +56,8 @@ abstract contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer 
         collateralParams[0] = data.userData.totalAmount;
         collateralParams[1] = data.paramsData.mainCoinAmount;
         collateralParams[2] = collateralFinishTime;
-        collateralProvider.registerPool(poolId, collateralParams);
-        lockDealNFT.cloneVaultId(poolId + 2, data.tokenPoolId);
+        collateralProvider.registerPool(collateralPoolId, collateralParams);
+        lockDealNFT.cloneVaultId(collateralPoolId + 2, data.tokenPoolId);
     }
 
     /// @notice Updates collateral data
@@ -113,7 +113,7 @@ abstract contract RefundBuilderInternal is RefundBuilderState, FirewallConsumer 
 
     /// @notice Iterates over user data to create refund pools for each user
     /// @param data Users data, paramsData, tokenPoolId, simple provider address
-    function _userDataIterator(
+    function _buildMassPools(
         Rebuilder memory data
     ) internal firewallProtectedSig(0xbbc1f709) {
         uint256 length = data.userData.userPools.length;
