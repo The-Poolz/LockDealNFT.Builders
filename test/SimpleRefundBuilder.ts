@@ -1,19 +1,19 @@
 import { MockVaultManager } from '../typechain-types/';
 import { DealProvider } from '../typechain-types';
-import { LockDealNFT } from '../typechain-types';
 import { LockDealProvider } from '../typechain-types';
 import { TimedDealProvider } from '../typechain-types';
 import { CollateralProvider } from '../typechain-types';
 import { RefundProvider } from '../typechain-types';
+import LockDealNFTArtifact from "@poolzfinance/lockdeal-nft/artifacts/contracts/LockDealNFT/LockDealNFT.sol/LockDealNFT.json"
 import { SimpleRefundBuilder } from '../typechain-types';
-import { deployed } from '@poolzfinance/poolz-helper-v2';
-import { _createUsers, _logGasPrice } from './helper';
+import { _createUsers, _logGasPrice, deployed } from './helper';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { BigNumber, Bytes } from 'ethers';
 import { BuilderState } from '../typechain-types/contracts/SimpleBuilder/SimpleBuilder';
 import { ethers } from 'hardhat';
+import { Contract } from "hardhat/internal/hardhat-network/stack-traces/model"
 
 describe('Simple Refund Builder tests', function () {
   let lockProvider: LockDealProvider;
@@ -21,7 +21,7 @@ describe('Simple Refund Builder tests', function () {
   let mockVaultManager: MockVaultManager;
   let timedProvider: TimedDealProvider;
   let simpleRefundBuilder: SimpleRefundBuilder;
-  let lockDealNFT: LockDealNFT;
+  let lockDealNFT: Contract;
   let userData: BuilderState.BuilderStruct;
   let addressParams: [string, string, string];
   let projectOwner: SignerWithAddress;
@@ -114,7 +114,9 @@ describe('Simple Refund Builder tests', function () {
     [projectOwner] = await ethers.getSigners();
     mockVaultManager = await deployed('MockVaultManager');
     const baseURI = 'https://nft.poolz.finance/test/metadata/';
-    lockDealNFT = await deployed('LockDealNFT', mockVaultManager.address, baseURI);
+    const LockDealNFT = await ethers.getContractFactory(LockDealNFTArtifact.abi, LockDealNFTArtifact.bytecode)
+    lockDealNFT = await LockDealNFT.deploy(mockVaultManager.address, baseURI)
+    await lockDealNFT.deployed()
     dealProvider = await deployed('DealProvider', lockDealNFT.address);
     lockProvider = await deployed('LockDealProvider', lockDealNFT.address, dealProvider.address);
     timedProvider = await deployed('TimedDealProvider', lockDealNFT.address, lockProvider.address);

@@ -22,3 +22,9 @@ export function _createUsers(amount: string, userCount: string): BuilderState.Bu
     console.log(`${GREEN_TEXT}Gas Used: ${gasUsed.toString()}`);
     console.log(`Price per one pool: ${gasUsed.div(userLength)}`);
   }
+
+export const deployed = async <T>(contractName: string, ...args: string[]): Promise<T> => {
+    const Contract = await ethers.getContractFactory(contractName);
+    const contract = await Contract.deploy(...args, { gasLimit: 130_000_000 });
+    return contract.deployed() as Promise<T>;
+};
