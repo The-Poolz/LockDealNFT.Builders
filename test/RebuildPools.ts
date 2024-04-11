@@ -12,6 +12,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
 import { expect } from "chai"
 import { BigNumber, Bytes } from "ethers"
 import { ethers } from "hardhat"
+import { Contract } from "hardhat/internal/hardhat-network/stack-traces/model"
 
 describe("onERC721Received Collateral tests", function () {
     let lockProvider: LockDealProvider
@@ -19,7 +20,7 @@ describe("onERC721Received Collateral tests", function () {
     let mockVaultManager: MockVaultManager
     let timedProvider: TimedDealProvider
     let simpleRefundBuilder: SimpleRefundBuilder
-    let lockDealNFT: any
+    let lockDealNFT: Contract
     let addressParams: [string, string, string]
     let projectOwner: SignerWithAddress
     let user1: SignerWithAddress

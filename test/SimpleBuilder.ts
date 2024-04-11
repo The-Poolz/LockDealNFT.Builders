@@ -11,6 +11,7 @@ import { expect } from 'chai';
 import { BigNumber, Bytes } from 'ethers';
 import { ethers } from 'hardhat';
 import { BuilderState } from '../typechain-types/contracts/Builders/SimpleBuilder/SimpleBuilder';
+import { Contract } from "hardhat/internal/hardhat-network/stack-traces/model"
 
 describe('Simple Builder tests', function () {
   let lockProvider: LockDealProvider;
@@ -18,7 +19,7 @@ describe('Simple Builder tests', function () {
   let mockVaultManager: MockVaultManager;
   let timedProvider: TimedDealProvider;
   let simpleBuilder: SimpleBuilder;
-  let lockDealNFT: any;
+  let lockDealNFT: Contract;
   let userData: BuilderState.BuilderStruct;
   let addressParams: [string, string];
   let projectOwner: SignerWithAddress;

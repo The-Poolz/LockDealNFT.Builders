@@ -13,6 +13,7 @@ import { expect } from 'chai';
 import { BigNumber, Bytes } from 'ethers';
 import { BuilderState } from '../typechain-types/contracts/SimpleBuilder/SimpleBuilder';
 import { ethers } from 'hardhat';
+import { Contract } from "hardhat/internal/hardhat-network/stack-traces/model"
 
 describe('Simple Refund Builder tests', function () {
   let lockProvider: LockDealProvider;
@@ -20,7 +21,7 @@ describe('Simple Refund Builder tests', function () {
   let mockVaultManager: MockVaultManager;
   let timedProvider: TimedDealProvider;
   let simpleRefundBuilder: SimpleRefundBuilder;
-  let lockDealNFT: any;
+  let lockDealNFT: Contract;
   let userData: BuilderState.BuilderStruct;
   let addressParams: [string, string, string];
   let projectOwner: SignerWithAddress;
