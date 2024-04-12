@@ -10,6 +10,8 @@ import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 contract SimpleBuilder is ERC721Holder, BuilderInternal, FirewallConsumer {
     constructor(ILockDealNFT _lockDealNFT) BuilderState(_lockDealNFT) {}
 
+    error InvalidUserLength();
+
     struct MassPoolsLocals {
         uint256 totalAmount;
         address token;
@@ -30,11 +32,10 @@ contract SimpleBuilder is ERC721Holder, BuilderInternal, FirewallConsumer {
         bytes calldata signature
     ) external firewallProtected notZeroAddress(addressParams[1]) {
         _validParamsLength(addressParams.length, 2);
-        require(
-            ERC165Checker.supportsInterface(addressParams[0], type(ISimpleProvider).interfaceId),
-            "invalid provider type"
-        );
-        require(userData.userPools.length > 0, "invalid user length");
+        if (!ERC165Checker.supportsInterface(addressParams[0], type(ISimpleProvider).interfaceId)) {
+            revert InvalidProviderType();
+        }
+        if (userData.userPools.length == 0) revert InvalidUserLength();
         MassPoolsLocals memory locals;
         locals.totalAmount = userData.totalAmount;
         _notZeroAmount(locals.totalAmount);

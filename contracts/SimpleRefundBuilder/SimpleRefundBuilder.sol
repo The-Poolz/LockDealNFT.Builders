@@ -16,6 +16,10 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
         uint256 firstPoolId,
         uint256 userLength
     );
+    error InvalidUserLength();
+    error InvalidLockDealNFT();
+    error InvalidCollateralProvider();
+    error EmptyBytesArray();
 
     constructor(
         ILockDealNFT _lockDealNFT,
@@ -30,17 +34,17 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
     /// @param collateralPoolId - the ID of the Collateral NFT
     /// @param data - additional data with the NFT
     function onERC721Received(address operator, address user, uint256 collateralPoolId, bytes calldata data) external virtual override firewallProtected returns (bytes4) {
-        require(msg.sender == address(lockDealNFT), "SimpleRefundBuilder: Only LockDealNFT contract allowed");
+        if (msg.sender != address(lockDealNFT)) revert InvalidLockDealNFT();
         if (operator != address(this)) {
-            require(lockDealNFT.poolIdToProvider(collateralPoolId) == collateralProvider, "SimpleRefundBuilder: Invalid collateral provider");
-            require(data.length > 0, "SimpleRefundBuilder: Invalid data length");
+            if (lockDealNFT.poolIdToProvider(collateralPoolId) != collateralProvider) revert InvalidCollateralProvider();
+            if (data.length == 0) revert EmptyBytesArray();
             Rebuilder memory locals;
             (
                 locals.tokenSignature,
                 locals.mainCoinSignature,
                 locals.userData
             ) = abi.decode(data, (bytes, bytes, Builder));
-            require(locals.userData.userPools.length > 0, "SimpleRefundBuilder: invalid user length");
+            if (locals.userData.userPools.length == 0) revert InvalidUserLength();
             locals.paramsData = _getParamsData(collateralPoolId, locals.userData.totalAmount, locals.userData.userPools[0].amount);
             // one time transfer for decreasing the number of transactions
             locals.tokenPoolId = _createFirstNFT(locals, operator);
@@ -78,11 +82,11 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
     ) external firewallProtected {
         Rebuilder memory locals;
         locals.paramsData = _validateParamsData(addressParams, params);
-        require(userData.userPools.length > 0, "SimpleRefundBuilder: invalid user length");
+        if (userData.userPools.length == 0) revert InvalidUserLength();
         locals.userData = userData;
         locals.tokenSignature = tokenSignature;
         locals.mainCoinSignature = mainCoinSignature;
-        require(locals.userData.totalAmount > 0, "SimpleRefundBuilder: invalid totalAmount");
+        if (locals.userData.totalAmount == 0) revert NoZeroAmount();
         locals.paramsData.simpleParams = _concatParams(userData.userPools[0].amount, params[1]);
         locals.tokenPoolId = _createFirstNFT(locals);
         locals.paramsData.refundParams = _finalizeFirstNFT(locals, params[0][1]);

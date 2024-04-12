@@ -170,7 +170,7 @@ describe("onERC721Received Collateral tests", function () {
                 0,
                 packedData
             )
-        ).to.be.revertedWith("SimpleRefundBuilder: Only LockDealNFT contract allowed")
+        ).to.be.revertedWithCustomError(simpleRefundBuilder, "InvalidLockDealNFT")
     })
 
     it("should revert empty data", async () => {
@@ -181,7 +181,7 @@ describe("onERC721Received Collateral tests", function () {
                 collateralPoolId,
                 []
             )
-        ).to.be.revertedWith("SimpleRefundBuilder: Invalid data length")
+        ).to.be.revertedWithCustomError(simpleRefundBuilder, "EmptyBytesArray")
     })
 
     it("should revert ivalid collateral pool id", async () => {
@@ -193,7 +193,7 @@ describe("onERC721Received Collateral tests", function () {
                 (await lockDealNFT.totalSupply()).sub(1),
                 packedData
             )
-        ).to.be.revertedWith("SimpleRefundBuilder: Invalid collateral provider")
+        ).to.be.revertedWithCustomError(simpleRefundBuilder, "InvalidCollateralProvider")
     })
 
     it("should revert transfer not from owner", async () => {
@@ -206,19 +206,19 @@ describe("onERC721Received Collateral tests", function () {
     it("should revert zero lockDealNFT address", async () => {
         const simpleRefundBuilder = await ethers.getContractFactory("SimpleRefundBuilder")
         await expect(simpleRefundBuilder.deploy(ethers.constants.AddressZero, refundProvider.address, collateralProvider.address)
-        ).to.be.revertedWith("BuilderState: lockDealNFT zero address")
+        ).to.be.revertedWithCustomError(simpleRefundBuilder, "NoZeroAddress")
     })
 
     it("should revert zero RefundProvider address", async () => {
         const simpleRefundBuilder = await ethers.getContractFactory("SimpleRefundBuilder")
         await expect(simpleRefundBuilder.deploy(lockDealNFT.address, ethers.constants.AddressZero, collateralProvider.address)
-        ).to.be.revertedWith("SimpleRefundBuilder: RefundProvider zero address")
+        ).to.be.revertedWithCustomError(simpleRefundBuilder, "NoZeroAddress")
     })
 
     it("should revert zero CollateralProvider address", async () => {
         const simpleRefundBuilder = await ethers.getContractFactory("SimpleRefundBuilder")
         await expect(simpleRefundBuilder.deploy(lockDealNFT.address, refundProvider.address, ethers.constants.AddressZero)
-        ).to.be.revertedWith("SimpleRefundBuilder: CollateralProvider zero address")
+        ).to.be.revertedWithCustomError(simpleRefundBuilder, "NoZeroAddress")
     })
 
     it("should emit rebuilder event", async () => {

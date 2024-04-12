@@ -99,6 +99,14 @@ describe('Simple Builder tests', function () {
     await expect(tx).to.emit(simpleBuilder, 'MassPoolsCreated').withArgs(token, dealProvider.address, firstPoolId, userData.userPools.length);
   });
 
+  it("should revert invlaid provider address", async () => {
+    const params = _createProviderParams(dealProvider.address);
+    addressParams[0] = lockDealNFT.address
+    await expect(simpleBuilder.connect(projectOwner)
+      .buildMassPools(addressParams, userData, params, signature))
+        .to.be.revertedWithCustomError(simpleBuilder, "InvalidProviderType")
+  })
+
   it('should create 10 dealProvider pools', async () => {
     const userCount = '10';
     const params = _createProviderParams(dealProvider.address);
