@@ -155,6 +155,14 @@ describe('Simple Refund Builder tests', function () {
     await expect(tx).to.emit(simpleRefundBuilder, 'MassPoolsCreated').withArgs(token, dealProvider.address, poolId, userData.userPools.length);
   });
 
+  it("should revert invlaid provider address", async () => {
+    const params = _createProviderParams(dealProvider.address);
+    addressParams[0] = lockDealNFT.address
+    await expect(simpleRefundBuilder.connect(projectOwner)
+      .buildMassPools(addressParams, userData, params, tokenSignature, mainCoinsignature, { gasLimit }))
+        .to.be.revertedWithCustomError(simpleRefundBuilder, "InvalidProviderType")
+  })
+
   it('should create 10 simple refund pools with dealProvider', async () => {
     const userCount = '10';
     mainCoinAmount = ethers.utils.parseEther('10').mul(userCount);
