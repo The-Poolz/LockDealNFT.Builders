@@ -7,9 +7,11 @@ contract BuilderState {
     ILockDealNFT public immutable lockDealNFT;
 
     event MassPoolsCreated(address indexed token, IProvider indexed provider, uint256 firstPoolId, uint256 userLength);
+    error NoZeroAddress();
+    error InvalidProviderType();
 
     constructor(ILockDealNFT _lockDealNFT) {
-        require(address(_lockDealNFT) != address(0), "BuilderState: lockDealNFT zero address");
+        if (address(_lockDealNFT) == address(0)) revert NoZeroAddress();
         lockDealNFT = _lockDealNFT;
     }
 

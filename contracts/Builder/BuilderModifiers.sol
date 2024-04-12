@@ -5,6 +5,9 @@ import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "./BuilderState.sol";
 
 abstract contract BuilderModifiers is BuilderState {
+    error NoZeroAmount();
+    error InvalidParamsLength(uint256 paramsLength, uint256 minLength);
+
     modifier notZeroAddress(address _address) {
         _notZeroAddress(_address);
         _;
@@ -17,14 +20,14 @@ abstract contract BuilderModifiers is BuilderState {
     }
 
     function _notZeroAmount(uint256 amount) internal pure {
-        require(amount > 0, "amount must be greater than 0");
+        if (amount == 0) revert NoZeroAmount();
     }
 
     function _notZeroAddress(address _address) internal pure {
-        require(_address != address(0x0), "Zero Address is not allowed");
+        if (_address == address(0)) revert NoZeroAddress();
     }
 
     function _validParamsLength(uint256 paramsLength, uint256 minLength) internal pure {
-        require(paramsLength >= minLength, "invalid params length");
+        if (paramsLength < minLength) revert InvalidParamsLength(paramsLength, minLength);
     }
 }

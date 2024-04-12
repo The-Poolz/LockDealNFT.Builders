@@ -10,20 +10,17 @@ import "../Builder/BuilderInternal.sol";
 abstract contract RefundBuilderState is BuilderInternal {
     using CalcUtils for uint256;
 
+    error InvalidAddressLength();
+    error InvalidRefundPoolId();
+
     // Instance of the refund provider contract
     IProvider public immutable refundProvider;
     // Instance of the collateral provider contract
     IProvider public immutable collateralProvider;
 
     constructor(IProvider _refund, IProvider _collateral) {
-        require(
-            address(_refund) != address(0),
-            "SimpleRefundBuilder: RefundProvider zero address"
-        );
-        require(
-            address(_collateral) != address(0),
-            "SimpleRefundBuilder: CollateralProvider zero address"
-        );
+        if (address(_refund) == address(0)) revert NoZeroAddress();
+        if (address(_collateral) == address(0)) revert NoZeroAddress();
         refundProvider = _refund;
         collateralProvider = _collateral;
     }
@@ -53,15 +50,14 @@ abstract contract RefundBuilderState is BuilderInternal {
         address[] calldata addressParams,
         uint256[][] calldata params
     ) internal view returns (ParamsData memory paramsData) {
-        require(addressParams.length == 3, "SimpleRefundBuilder: addressParams must contain exactly 3 addresses");
-        require(params.length == 2, "SimpleRefundBuilder: params must contain exactly 2 elements");
-        require(
-            ERC165Checker.supportsInterface(addressParams[0], type(ISimpleProvider).interfaceId),
-            "SimpleRefundBuilder: provider must be ISimpleProvider"
-        );
-        require(addressParams[0] != address(0), "SimpleRefundBuilder: invalid provider address");
-        require(addressParams[1] != address(0), "SimpleRefundBuilder: invalid token address");
-        require(addressParams[2] != address(0), "SimpleRefundBuilder: invalid mainCoin address");
+        if (addressParams.length != 3) revert InvalidAddressLength();
+        if (params.length != 2) revert InvalidParamsLength(params.length, 2);
+        if(!ERC165Checker.supportsInterface(addressParams[0], type(ISimpleProvider).interfaceId)) {
+            revert InvalidProviderType();
+        }
+        if (addressParams[0] == address(0)) revert NoZeroAddress();
+        if (addressParams[1] == address(0)) revert NoZeroAddress();
+        if (addressParams[2] == address(0)) revert NoZeroAddress();
         paramsData.token = addressParams[1];
         paramsData.provider = ISimpleProvider(addressParams[0]);
         paramsData.mainCoin = addressParams[2];
@@ -81,7 +77,7 @@ abstract contract RefundBuilderState is BuilderInternal {
         // get refund pool ID
         uint256 refundPoolId = collateraPoolId - 2;
         // Ensure valid refund pool ID
-        require(lockDealNFT.poolIdToProvider(refundPoolId) == refundProvider, "SimpleRefundBuilder: invalid refundPoolId");
+        if (lockDealNFT.poolIdToProvider(refundPoolId) != refundProvider) revert InvalidRefundPoolId();
         paramsData.token = lockDealNFT.tokenOf(refundPoolId);
         paramsData.mainCoin = lockDealNFT.tokenOf(collateraPoolId);
         uint256 poolId = refundPoolId + 1;
