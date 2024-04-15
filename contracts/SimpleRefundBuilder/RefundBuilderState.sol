@@ -13,9 +13,9 @@ abstract contract RefundBuilderState is BuilderInternal {
     error InvalidAddressLength();
     error InvalidRefundPoolId();
 
-    // Instance of the refund provider contract
+    /// @dev Instance of the refund provider contract
     IProvider public immutable refundProvider;
-    // Instance of the collateral provider contract
+    /// @dev Instance of the collateral provider contract
     IProvider public immutable collateralProvider;
 
     constructor(IProvider _refund, IProvider _collateral) {
@@ -25,6 +25,7 @@ abstract contract RefundBuilderState is BuilderInternal {
         collateralProvider = _collateral;
     }
 
+    /// @dev Struct containing parameters data for building refund pools.
     struct ParamsData {
         ISimpleProvider provider; // Simple provider instance
         address token; // ERC-20 token address
@@ -33,7 +34,8 @@ abstract contract RefundBuilderState is BuilderInternal {
         uint256[] simpleParams; // Parameters for the simple provider
         uint256[] refundParams; // Parameters for the refund provider
     }
-
+    
+    /// @dev Struct containing data for rebuilding refund pools.
     struct Rebuilder {
         ParamsData paramsData; // Parameters data
         Builder userData; // User data (UserPool[] userPools; uint256 totalAmount)
