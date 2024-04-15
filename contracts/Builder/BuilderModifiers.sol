@@ -9,8 +9,6 @@ import "./BuilderState.sol";
 abstract contract BuilderModifiers is BuilderState {
     /// @dev Error thrown when an amount is zero
     error NoZeroAmount();
-    /// @dev Error thrown when an address is zero
-    error NoZeroAddress();
     /// @dev Error thrown when the length of parameters is invalid
     error InvalidParamsLength(uint256 paramsLength, uint256 minLength);
 
