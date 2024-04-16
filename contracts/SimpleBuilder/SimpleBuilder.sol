@@ -8,10 +8,14 @@ import "@ironblocks/firewall-consumer/contracts/FirewallConsumer.sol";
 /// @title SimpleBuilder contract
 /// @notice This contract is used to create mass lock deals(NFTs)
 contract SimpleBuilder is ERC721Holder, BuilderInternal, FirewallConsumer {
+    /// @dev Constructor to initialize the SimpleBuilder contract with the provided instance of LockDealNFT
+    /// @param _lockDealNFT Instance of the LockDealNFT contract
     constructor(ILockDealNFT _lockDealNFT) BuilderState(_lockDealNFT) {}
 
+    /// @dev Error thrown when an invalid user length is detected
     error InvalidUserLength();
 
+    /// @dev Struct to store local variables for building mass pools
     struct MassPoolsLocals {
         uint256 totalAmount;
         address token;
@@ -23,8 +27,9 @@ contract SimpleBuilder is ERC721Holder, BuilderInternal, FirewallConsumer {
     /// @notice Build mass pools
     /// @param addressParams[0] - Provider address
     /// @param addressParams[1] - Token address
-    /// @param userData - Array of user pools
-    /// @param params - Array of params. May be empty if this is DealProvider
+    /// @param userData Array of user pools containing user addresses and corresponding token amounts
+    /// @param params Array of parameters (may be empty if this is a DealProvider)
+    /// @param signature Cryptographic signature for the transfer
     function buildMassPools(
         address[] calldata addressParams,
         Builder calldata userData,
