@@ -34,8 +34,10 @@ contract SimpleBuilder is ERC721Holder, BuilderInternal, FirewallConsumer {
         address[] calldata addressParams,
         Builder calldata userData,
         uint256[] calldata params,
-        bytes calldata signature
-    ) external firewallProtected notZeroAddress(addressParams[1]) {
+        bytes calldata signature,
+        bytes memory data
+    ) external firewallProtectedCustom(data) {
+        _notZeroAddress(addressParams[1]);
         _validParamsLength(addressParams.length, 2);
         if (!ERC165Checker.supportsInterface(addressParams[0], type(ISimpleProvider).interfaceId)) {
             revert InvalidProviderType();

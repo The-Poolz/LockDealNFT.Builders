@@ -87,7 +87,7 @@ describe("onERC721Received Collateral tests", function () {
             [rebuildData, totalAmount],
         ])
         collateralPoolId = (await lockDealNFT.totalSupply()).toNumber() + 2
-        await simpleRefundBuilder.buildMassPools(addressParams, userPools, params, tokenSignature, mainCoinsignature, {
+        await simpleRefundBuilder.buildMassPools(addressParams, userPools, params, tokenSignature, mainCoinsignature, ethers.utils.toUtf8Bytes(""), {
             gasLimit,
         })
         refundPoolId = (await lockDealNFT.totalSupply()).toNumber()

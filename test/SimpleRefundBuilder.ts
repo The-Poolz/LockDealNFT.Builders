@@ -43,7 +43,7 @@ describe('Simple Refund Builder tests', function () {
 
   async function _testMassPoolsData(provider: string, amount: string, userCount: string, params: string[][]) {
     userData = _createUsers(amount, userCount);
-    const tx = await simpleRefundBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params, tokenSignature, mainCoinsignature, { gasLimit });
+    const tx = await simpleRefundBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params, tokenSignature, mainCoinsignature, ethers.utils.toUtf8Bytes(""), { gasLimit });
     const txReceipt = await tx.wait();
     const lastPoolId = (await lockDealNFT.totalSupply()).toNumber();
     _logGasPrice(txReceipt, userData.userPools.length);
@@ -151,7 +151,7 @@ describe('Simple Refund Builder tests', function () {
   it("should emit 'MassPoolsCreated' event", async () => {
     const params = _createProviderParams(dealProvider.address);
     const tx = await simpleRefundBuilder.connect(projectOwner)
-      .buildMassPools(addressParams, userData, params, tokenSignature, mainCoinsignature, { gasLimit });
+      .buildMassPools(addressParams, userData, params, tokenSignature, mainCoinsignature, ethers.utils.toUtf8Bytes(""), { gasLimit });
     await expect(tx).to.emit(simpleRefundBuilder, 'MassPoolsCreated').withArgs(token, dealProvider.address, poolId, userData.userPools.length);
   });
 
@@ -159,7 +159,7 @@ describe('Simple Refund Builder tests', function () {
     const params = _createProviderParams(dealProvider.address);
     addressParams[0] = lockDealNFT.address
     await expect(simpleRefundBuilder.connect(projectOwner)
-      .buildMassPools(addressParams, userData, params, tokenSignature, mainCoinsignature, { gasLimit }))
+      .buildMassPools(addressParams, userData, params, tokenSignature, mainCoinsignature, ethers.utils.toUtf8Bytes(""), { gasLimit }))
         .to.be.revertedWithCustomError(simpleRefundBuilder, "InvalidProviderType")
   })
 
