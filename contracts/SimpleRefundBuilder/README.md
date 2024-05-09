@@ -12,7 +12,8 @@ function buildMassPools(
         Builder calldata userData,
         uint256[][] calldata params,
         bytes calldata tokenSignature,
-        bytes calldata mainCoinSignature
+        bytes calldata mainCoinSignature,
+        bytes memory firewallData
     ) public
 ```
 

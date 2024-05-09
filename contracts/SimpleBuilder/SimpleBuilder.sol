@@ -30,6 +30,7 @@ contract SimpleBuilder is ERC721Holder, BuilderInternal, FirewallConsumer {
     /// @param userData Array of user pools containing user addresses and corresponding token amounts
     /// @param params Array of parameters (may be empty if this is a DealProvider)
     /// @param signature Cryptographic signature for the transfer
+    /// @param data Additional data for the firewall
     function buildMassPools(
         address[] calldata addressParams,
         Builder calldata userData,
