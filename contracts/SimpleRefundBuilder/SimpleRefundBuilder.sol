@@ -73,6 +73,8 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
     /// @param userData - array of user pools
     /// @param params[0] = collateral params, [0] start amount, [1] finish time
     /// @param params[1] = Array of params for simpleProvider. May be empty if this is DealProvider
+    /// @param tokenSignature - signature for token transfer
+    /// @param mainCoinSignature - signature for main coin transfer
     function buildMassPools(
         address[] calldata addressParams,
         Builder calldata userData,
