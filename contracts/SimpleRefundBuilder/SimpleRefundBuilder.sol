@@ -75,15 +75,13 @@ contract SimpleRefundBuilder is RefundBuilderInternal, IERC721Receiver {
     /// @param params[1] = Array of params for simpleProvider. May be empty if this is DealProvider
     /// @param tokenSignature - signature for token transfer
     /// @param mainCoinSignature - signature for main coin transfer
-    /// @param data - additional data for firewall
     function buildMassPools(
         address[] calldata addressParams,
         Builder calldata userData,
         uint256[][] calldata params,
         bytes calldata tokenSignature,
-        bytes calldata mainCoinSignature,
-        bytes memory data
-    ) external firewallProtectedCustom(data) {
+        bytes calldata mainCoinSignature
+    ) external firewallProtected {
         Rebuilder memory locals;
         locals.paramsData = _validateParamsData(addressParams, params);
         if (userData.userPools.length == 0) revert InvalidUserLength();

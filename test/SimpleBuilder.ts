@@ -32,7 +32,7 @@ describe('Simple Builder tests', function () {
   async function _testMassPoolsData(provider: string, amount: string, userCount: string, params: BigNumber[]) {
     userData = _createUsers(amount, userCount);
     const lastPoolId = (await lockDealNFT.totalSupply()).toNumber();
-    const tx = await simpleBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params, signature, ethers.utils.toUtf8Bytes(""));
+    const tx = await simpleBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params, signature);
     const txReceipt = await tx.wait();
     _logGasPrice(txReceipt, userData.userPools.length);
     params.splice(0, 0, ethers.BigNumber.from(amount));
@@ -95,7 +95,7 @@ describe('Simple Builder tests', function () {
   it("should emit 'MassPoolsCreated' event", async () => {
     const params = _createProviderParams(dealProvider.address);
     const firstPoolId = await lockDealNFT.totalSupply();
-    const tx = await simpleBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params, signature, ethers.utils.toUtf8Bytes(""));
+    const tx = await simpleBuilder.connect(projectOwner).buildMassPools(addressParams, userData, params, signature);
     await expect(tx).to.emit(simpleBuilder, 'MassPoolsCreated').withArgs(token, dealProvider.address, firstPoolId, userData.userPools.length);
   });
 
@@ -103,7 +103,7 @@ describe('Simple Builder tests', function () {
     const params = _createProviderParams(dealProvider.address);
     addressParams[0] = lockDealNFT.address
     await expect(simpleBuilder.connect(projectOwner)
-      .buildMassPools(addressParams, userData, params, signature, ethers.utils.toUtf8Bytes("")))
+      .buildMassPools(addressParams, userData, params, signature))
         .to.be.revertedWithCustomError(simpleBuilder, "InvalidProviderType")
   })
 

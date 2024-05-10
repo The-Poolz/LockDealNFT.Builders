@@ -11,8 +11,7 @@ function buildMassPools(
         address[] calldata addressParams,
         Builder calldata userData,
         uint256[] calldata params,
-        bytes calldata signature,
-        bytes memory firewallData
+        bytes calldata signature
     ) external
 ```
 
