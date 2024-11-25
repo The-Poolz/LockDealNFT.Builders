@@ -13,6 +13,7 @@
 -   [Installation](#installation)
 -   [Simple Builder](https://github.com/The-Poolz/LockDealNFT.Builders/tree/master/contracts/SimpleBuilder#simplebuilder)
 -   [Simple Refund Builder](https://github.com/The-Poolz/LockDealNFT.Builders/tree/master/contracts/SimpleRefundBuilder#simplerefundbuilder)
+-   [Audit Report](#audit-report)
 -   [License](#license)
 
 ## Installation
@@ -58,6 +59,9 @@ npx hardhat run ./scripts/deploySimpleBuilder.ts --network truffleDashboard
 ```console
 npx hardhat run ./scripts/deploySimpleRefundBuilder.ts --network truffleDashboard
 ```
+
+## Audit report
+The audit report is available here: [Audit Report](https://docs.google.com/document/d/1pLkH97n9CBYgKS1mDAUOxKjSAlXCseaS/edit#heading=h.gjdgxs)
 
 ## License
 
